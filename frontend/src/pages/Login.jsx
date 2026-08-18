@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
+const navigate = useNavigate();
+
 
 
 const handleLogin = async (e) => {
   e.preventDefault();
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login/`, { // Adjust to your actual endpoint path
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
@@ -17,13 +20,16 @@ const handleLogin = async (e) => {
 
     if (response.ok) {
       const data = await response.json();
-      
-      // Save the exact flat keys your Python view returns:
       localStorage.setItem("token", data.token);
       localStorage.setItem("username", data.username);
       localStorage.setItem("role", data.role);
-      
-      window.location.href = "/dashboard";
+
+      // 🚀 Route instantly without breaking the SPA!
+      if (data.role === "admin") {
+        navigate("/admin");
+      } else {
+        navigate("/dashboard");
+      } // Removed the stray bracket that was breaking things here!
     } else {
       setErrorMessage("Invalid credentials");
     }
