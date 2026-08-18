@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
 from django.contrib.auth import authenticate
+from rest_framework.views import APIView
 from django.db.models import Q  # Vital for the Note search logic
 from django.contrib.auth import get_user_model
 
