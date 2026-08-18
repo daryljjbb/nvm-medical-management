@@ -49,6 +49,65 @@ def login_view(request):
         return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
 
+# ---------------------------------------------------------
+# PROFILE
+# ---------------------------------------------------------
+
+class ProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        serializer = UserSerializer(request.user)
+        return Response(serializer.data)
+
+    def put(self, request):
+        user = request.user
+        user.email = request.data.get("email", user.email)
+        user.save()
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
+
+class UpdateProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        user = request.user
+        username = request.data.get("username")
+        email = request.data.get("email")
+
+        if username:
+            user.username = username
+        if email:
+            user.email = email
+
+        user.save()
+        return Response({"message": "Profile updated"})
+
+
+# ---------------------------------------------------------
+# CHANGE PASSWORD
+# ---------------------------------------------------------
+
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        old_password = request.data.get("old_password")
+        new_password = request.data.get("new_password")
+
+        if not request.user.check_password(old_password):
+            return Response({"error": "Current password is incorrect."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        request.user.set_password(new_password)
+        request.user.save()
+        return Response({"message": "Password changed successfully."})
+
+
+
+
+
+
 # ==========================================
 # 2. DASHBOARD DATA SECTION
 # ==========================================
