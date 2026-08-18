@@ -141,9 +141,26 @@ USE_TZ = True
 # Allow React frontend to talk to this API
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://nvm-medical-management-1.onrender.com",
     # Vite default port
-    # Add your Render frontend URL here after deployment
+    # Add your Render frontend URL here after deployment"
 ]
+
+CORS_ALLOW_HEADERS = [
+    "authorization",
+    "content-type",
+]
+
+CORS_ALLOW_METHODS = [
+    "GET",
+    "POST",
+    "DELETE",
+    "OPTIONS",
+]
+
+
+CORS_ALLOW_CREDENTIALS = True
+
 
 # 6. STATIC FILES (WhiteNoise Config)
 STATIC_URL = 'static/'
