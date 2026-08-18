@@ -39,25 +39,36 @@ const [newUser, setNewUser] = useState({
     return <Navigate to="/dashboard" />;
   }
 
-  const fetchUsers = async () => {
-    try {
-      const res = await fetch(`${API_URL}/admin/users/`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error("Failed to load users");
-
-      const data = await res.json();
-      setUsers(data);
-      setError("");
-    } catch (err) {
-      setError("Failed to load users (CORS, auth, or server error)");
-    } finally {
-      setLoading(false);
+ 
+// Fetch user grid listing
+const fetchUsers = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/users/`, {
+      headers: { "Authorization": `Token ${localStorage.getItem("token")}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setUsers(data); // Injects array properties into frontend elements
     }
-  };
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+// Fetch metric statistic counts
+const fetchStats = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/stats/`, {
+      headers: { "Authorization": `Token ${localStorage.getItem("token")}` }
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setStats(data); // Populates "Total Users" and "Admin Count" fields
+    }
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   const updateRole = async (id, newRole) => {
     try {
@@ -161,27 +172,30 @@ const toggleSort = (column) => {
   }
 };
 
-const handleCreateUser = async () => {
+
+const handleCreateUser = async (e) => {
+  e.preventDefault();
   try {
-    const res = await fetch(`${API_URL}/register/`, {
+    // 🚀 FIX: Update route string to matching path -> /api/create-user/
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/create-user/`, { 
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+        "Authorization": `Token ${localStorage.getItem("token")}` // Secure Admin validation header
       },
-      body: JSON.stringify(newUser),
+      body: JSON.stringify({ username, email, password, role }), // Ensure state variable matches "role" selection element
     });
 
-    if (!res.ok) {
-      alert("Failed to create user");
-      return;
+    if (response.ok) {
+      setIsOpen(false); // Hide the popup box
+      fetchUsers();     // Reload user grid matrix instantly
+      fetchStats();     // Recalculate metric summary blocks
+    } else {
+      const errorData = await response.json();
+      console.error("Backend validation mismatch:", errorData);
     }
-
-    setShowCreateModal(false);
-    setNewUser({ username: "", email: "", password: "", role: "user" });
-    await fetchUsers(); // refresh list
-  } catch (err) {
-    alert("Error creating user");
+  } catch (error) {
+    console.error("Connection error:", error);
   }
 };
 
