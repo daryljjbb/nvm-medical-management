@@ -1,3 +1,4 @@
+'nvm-medical-management.onrender.com'
 """
 Django settings for core project.
 
@@ -35,7 +36,7 @@ print(f"[DEBUG MODE]: {DEBUG}")
 
 
 # Allow Render's URL and local development
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'nvm-medical-management.onrender.com']
 
 # Application definition
 
