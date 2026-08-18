@@ -5,13 +5,31 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
-  const handleLogin = async () => {
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+  const handleLogin = async (e) => {
+  e.preventDefault();
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/api/login/`, { // Adjust to your actual endpoint path
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Save the exact flat keys your Python view returns:
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("username", data.username);
+      localStorage.setItem("role", data.role);
+      
+      window.location.href = "/dashboard";
+    } else {
+      setErrorMessage("Invalid credentials");
+    }
+  } catch (error) {
+    setErrorMessage("Network error");
+  }
+};	
 
       const data = await response.json();
 

@@ -1,27 +1,26 @@
-import { refreshAccessToken } from "./auth";
+
+import { refreshAccessToken } from "./auth"; 
 
 export async function apiFetch(url, options = {}) {
-  let access = localStorage.getItem("access");
+  // 1. Read the correct flat token key from storage
+  const token = localStorage.getItem("token");
 
+  // 2. Attach headers using DRF's required "Token <key>" syntax
   options.headers = {
     ...(options.headers || {}),
-    Authorization: `Bearer ${access}`,
     "Content-Type": "application/json",
+    Authorization: token ? `Token ${token}` : "",
   };
 
-  let response = await fetch(url, options);
+  const response = await fetch(url, options);
 
+  // 3. Handle invalid/expired tokens directly
   if (response.status === 401) {
-    const newAccess = await refreshAccessToken();
-
-    if (!newAccess) return response;
-
-    // FIX: store new token so future requests use it
-    localStorage.setItem("access", newAccess);
-
-    options.headers.Authorization = `Bearer ${newAccess}`;
-    response = await fetch(url, options);
+    // Clear storage and bounce to login since DRF tokens don't rotate
+    localStorage.clear();
+    window.location.href = "/login";
   }
 
   return response;
 }
+
