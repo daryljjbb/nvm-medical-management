@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Layout from "../components/Layout.jsx";
 import RequireAuth from "../components/RequireAuth.jsx";
-import ReactQuill from "react-quill";
 import { apiFetch } from "../utils/api";
 
 export default function EditNote() {
@@ -81,9 +80,6 @@ export default function EditNote() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
-
-          
-
             <select
               className="form-control my-2"
               value={category}
