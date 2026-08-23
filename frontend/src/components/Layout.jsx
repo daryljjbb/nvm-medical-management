@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom"; // Essential for SPA performance
+import { NavLink, useNavigate, useLocation } from "react-router-dom"; // Essential for SPA performance
 import "./layout.css";
 import InactivityLogout from "./InactivityLogout.jsx";
 import { auth } from "../utils/auth.js";
