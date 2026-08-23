@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apiFetch } from "../utils/api.js`"; 
+import { apiFetch } from "../utils/api.js";
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
