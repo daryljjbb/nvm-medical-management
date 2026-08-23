@@ -1,14 +1,26 @@
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth } from "../utils/auth.js"; // ROOT CAUSE FIX: Use centralized utility
 
 export default function Logout() {
+  const navigate = useNavigate();
+
   useEffect(() => {
-    // Clear stored tokens
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
+    console.log("[LOGOUT] Clearing session and redirecting...");
+    
+    // Wipe all medical session data
+    auth.logout();
 
-    // Redirect to login page
-    window.location.href = "/";
-  }, []);
+    // Redirect to login instantly
+    navigate("/");
+  }, [navigate]);
 
-  return null; // No UI needed
+  return (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="text-center">
+        <div className="spinner-border text-primary mb-2" role="status"></div>
+        <p className="text-muted">Signing out safely...</p>
+      </div>
+    </div>
+  );
 }
