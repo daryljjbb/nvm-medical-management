@@ -1,26 +1,48 @@
 
-import { refreshAccessToken } from "./auth"; 
+/**
+ * api.js - Centralized Fetch Wrapper
+ * Handles: Base URL, Auth Headers, and Global Error Trapping
+ */
 
-export async function apiFetch(url, options = {}) {
-  // 1. Read the correct flat token key from storage
+// Root Cause Fix: Use an environment variable for the API URL. 
+// Vite uses 'import.meta.env.VITE_API_URL'.
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+export async function apiFetch(endpoint, options = {}) {
   const token = localStorage.getItem("token");
+  const url = `${BASE_URL}${endpoint}`;
 
-  // 2. Attach headers using DRF's required "Token <key>" syntax
-  options.headers = {
-    ...(options.headers || {}),
+  console.log(`[API CALL]: ${options.method || 'GET'} ${url}`);
+
+  // Default headers
+  const defaultHeaders = {
     "Content-Type": "application/json",
-    Authorization: token ? `Token ${token}` : "",
+    "Authorization": token ? `Token ${token}` : "",
   };
 
-  const response = await fetch(url, options);
+  options.headers = { ...defaultHeaders, ...options.headers };
 
-  // 3. Handle invalid/expired tokens directly
-  if (response.status === 401) {
-    // Clear storage and bounce to login since DRF tokens don't rotate
-    localStorage.clear();
-    window.location.href = "/login";
+  try {
+    const response = await fetch(url, options);
+
+    // 401 Handling (Session Expired)
+    if (response.status === 401) {
+        console.warn("[AUTH] Token invalid or expired. Redirecting to login...");
+        localStorage.removeItem("token");
+        localStorage.removeItem("role");
+        window.location.href = "/";
+        return;
+    }
+
+    // 500 Handling (Server Crash)
+    if (response.status >= 500) {
+        console.error("[SERVER ERROR] The backend crashed or is offline.");
+        throw new Error("Internal Server Error. Please try again later.");
+    }
+
+    return response;
+  } catch (error) {
+    console.error("[NETWORK ERROR] Failed to reach the server:", error.message);
+    throw error;
   }
-
-  return response;
 }
-
