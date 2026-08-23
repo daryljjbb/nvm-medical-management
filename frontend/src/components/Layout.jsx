@@ -2,7 +2,7 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom"; // Essential for SPA performance
 import "./layout.css";
 import InactivityLogout from "./InactivityLogout.jsx";
-import { auth } from "../auth"; // Use your central auth utility
+import { auth } from "../utils/auth.js"; // Use your central auth utility
 
 export default function Layout({ children, theme, toggleTheme }) {
   const [collapsed, setCollapsed] = useState(false);
