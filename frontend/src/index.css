@@ -1,0 +1,32 @@
+/* Smooth movement + fade */
+.note-card {
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+/* While dragging */
+.note-card.dragging {
+  opacity: 0.6;
+  transform: scale(0.97);
+}
+
+/* Drop bounce */
+.note-card.drop-bounce {
+  animation: bounceIn 180ms ease;
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.95);
+  }
+  60% {
+    transform: scale(1.03);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Drag-over highlight */
+.note-card.drag-over {
+  border: 2px dashed #0d6efd;
+}

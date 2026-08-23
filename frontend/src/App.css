@@ -1,0 +1,67 @@
+.modal.fade.show .modal-dialog {
+  transform: translateY(0);
+  transition: transform 0.3s ease-in-out;
+}
+
+html, body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark theme card styling */
+[data-bs-theme="dark"] .card {
+  background-color: #1e1e1e;
+  color: #fff;
+}
+
+/* Dark theme table styling */
+[data-bs-theme="dark"] .table {
+  color: #fff;
+}
+
+/* Dashboard card layout */
+.dashboard-cards {
+  display: flex;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-cards {
+    flex-direction: column;
+  }
+}
+
+/* Table responsiveness */
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Mobile modal width */
+@media (max-width: 768px) {
+  .modal-dialog {
+    max-width: 95% !important;
+    margin: auto;
+  }
+}
+
+/* Mobile form elements */
+@media (max-width: 768px) {
+  input, button, select {
+    width: 100% !important;
+  }
+}
+
+/* Purple badge for Ideas category */
+.bg-purple {
+  background-color: #6f42c1 !important;
+}
+
+/* Custom drag preview box (this is fine to keep here) */
+#drag-preview {
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  font-weight: 600;
+  color: #333;
+}

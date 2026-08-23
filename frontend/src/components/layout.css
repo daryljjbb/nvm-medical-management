@@ -1,0 +1,164 @@
+.layout-container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background: #1e1e2f;
+  color: white;
+  padding: 20px;
+  transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* Header */
+.sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-title {
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.sidebar-controls {
+  display: flex;
+  gap: 10px;
+}
+
+.theme-btn,
+.collapse-btn {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+/* Navigation */
+.sidebar-nav {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-nav a {
+  color: white;
+  text-decoration: none;
+  padding: 12px 0;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: background 0.2s ease, padding-left 0.2s ease;
+}
+
+.sidebar-nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  padding-left: 10px;
+}
+
+/* Hide text when collapsed */
+.sidebar.collapsed .link-text {
+  display: none;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar.collapsed .link-text {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-link {
+  justify-content: center;
+}
+
+
+/* Phones */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 70px !important;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    overflow: hidden;
+  }
+
+  .sidebar.collapsed {
+    width: 70px !important;
+  }
+
+  .sidebar .link-text {
+    display: none !important;
+  }
+
+  .sidebar-link {
+    justify-content: center !important;
+  }
+
+  .main-content {
+    margin-left: 70px !important;
+    padding: 15px !important;
+  }
+}
+
+/* Tablets */
+@media (max-width: 1024px) {
+  .sidebar {
+    width: 180px;
+  }
+
+  .main-content {
+    margin-left: 180px;
+  }
+}
+
+
+/* Main content */
+.main-content {
+  flex: 1;
+  padding: 30px;
+  overflow-y: auto;
+  background: #f5f6fa;
+}
+
+/* Light theme */
+body.light-theme .sidebar {
+  background: #ffffff;
+  color: #333;
+}
+
+body.light-theme .sidebar-nav a {
+  color: #333;
+}
+
+body.light-theme .sidebar-nav a:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.light-theme .main-content {
+  background: #ffffff;
+}
