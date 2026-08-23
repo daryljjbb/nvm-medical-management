@@ -174,6 +174,31 @@ def dashboard_stats(request):
     }
     return Response(data)
 
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def dashboard_summary(request):
+    """
+    Provides the data for the Dashboard cards and recent activity.
+    """
+    print(f"[DASHBOARD] Generating summary for: {request.user.username}")
+    
+    # In a real medical app, we'd count real database objects.
+    # For now, we return structured data so the frontend doesn't stay blank.
+    data = {
+        "total_notes": Note.objects.filter(Q(sender=request.user) | Q(receiver=request.user)).count(),
+        "total_tasks": 5, # Mock data for now
+        "completed_tasks": 2, # Mock data for now
+        "recent_notes": NoteSerializer(
+            Note.objects.filter(receiver=request.user).order_by('-timestamp')[:3], 
+            many=True
+        ).data,
+        "recent_tasks": [
+            {"id": 1, "title": "Review Patient History", "description": "Check files for new intake", "created_at": "2023-10-01T10:00:00Z"}
+        ]
+    }
+    return Response(data)
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def manage_notes(request):

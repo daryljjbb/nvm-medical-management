@@ -38,62 +38,40 @@ export default function Layout({ children, theme, toggleTheme }) {
           </div>
         </div>
 
-        <nav className="sidebar-nav">
-          {/* 
-              NavLink automatically handles the "active" state.
-              We use 'end' on the dashboard so it doesn't stay active for sub-pages.
-          */}
-          
+       <nav className="sidebar-nav">
+        {/* Admin Only Link */}
           {role === "admin" && (
-            <NavLink to="/admin" className="sidebar-link">
-              <i className="bi bi-shield-lock-fill"></i>
-              <span className="link-text">Admin Panel</span>
-            </NavLink>
-          )}
-
-          <NavLink to="/dashboard" className="sidebar-link" end>
-            <i className="bi bi-house-door-fill"></i>
-            <span className="link-text">Dashboard</span>
+          <NavLink to="/admin" className="sidebar-link">
+           <i className="bi bi-shield-lock-fill"></i>
+            <span className="link-text">Admin Panel</span>
           </NavLink>
+    )}
 
-          <NavLink to="/notes" className="sidebar-link">
-            <i className="bi bi-journal-text"></i>
-            <span className="link-text">Medical Notes</span>
-          </NavLink>
+         {/* Links for EVERYONE */}
+       <NavLink to="/dashboard" className="sidebar-link">
+          <i className="bi bi-house-door-fill"></i>
+          <span className="link-text">Dashboard</span>
+       </NavLink>
 
-          <NavLink to="/tasks" className="sidebar-link">
-            <i className="bi bi-check2-square"></i>
-            <span className="link-text">Tasks/Queue</span>
-          </NavLink>
+      <NavLink to="/notes" className="sidebar-link">
+        <i className="bi bi-journal-text"></i>
+         <span className="link-text">Medical Notes</span>
+      </NavLink>
 
-          <hr className="sidebar-divider" />
+          {/* ... other links ... */}
 
-          <NavLink to="/profile" className="sidebar-link">
-            <i className="bi bi-person-circle"></i>
-            <span className="link-text">My Profile</span>
-          </NavLink>
-
-          <NavLink to="/settings" className="sidebar-link">
-            <i className="bi bi-gear-wide-connected"></i>
-            <span className="link-text">Settings</span>
-          </NavLink>
-
-          {/* THEME TOGGLE (Moved inside Nav for better spacing) */}
-          <button className="sidebar-link border-0 bg-transparent w-100 text-start" onClick={toggleTheme}>
-            <i className={theme === "light" ? "bi bi-moon-fill" : "bi bi-sun-fill"}></i>
-            <span className="link-text">{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
-          </button>
-
-          {/* LOGOUT */}
-          <button 
-            onClick={handleLogout} 
-            className="sidebar-link border-0 bg-transparent text-danger w-100 text-start mt-auto"
-          >
-            <i className="bi bi-box-arrow-right"></i>
-            <span className="link-text">Sign Out</span>
-          </button>
-        </nav>
-      </aside>
+           {/* LOGOUT: Move this to the very bottom, clearly visible */}
+       <div className="sidebar-footer mt-auto border-top pt-2">
+        <button 
+        onClick={handleLogout} 
+        className="sidebar-link border-0 bg-transparent text-danger w-100 text-start"
+         >
+           <i className="bi bi-box-arrow-right"></i>
+           <span className="link-text">Sign Out</span>
+        </button>
+      </div>
+    </nav>
+    </aside>
 
       {/* 
           MEDICAL SECURITY: Inactivity timer. 

@@ -7,6 +7,13 @@ export default function AdminDashboard() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
 
+  // Ensure stats is initialized as an object, not null!
+const [stats, setStats] = useState({
+    total_users: 0,
+    admin_count: 0,
+    new_users_today: 0
+});
+
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
