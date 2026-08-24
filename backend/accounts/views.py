@@ -202,16 +202,31 @@ def dashboard_summary(request):
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def manage_notes(request):
+    """
+    GET: List all notes involving the current user.
+    POST: Create a new clinical note/message.
+    """
     if request.method == 'GET':
-        notes = Note.objects.filter(Q(sender=request.user) | Q(receiver=request.user))
+        # Fetching notes where user is either the doctor (sender) or recipient
+        notes = Note.objects.filter(
+            Q(sender=request.user) | Q(receiver=request.user)
+        ).order_by('-timestamp')
+        
         serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data)
-    
+
     if request.method == 'POST':
+        print(f"[MEDICAL NOTE] New entry initiated by: {request.user.username}")
+        
+        # Create a copy of the data to inject the sender automatically
         data = request.data.copy()
-        data['sender'] = request.user.id
+        data['sender'] = request.user.id 
+
         serializer = NoteSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
+            print(f"[SUCCESS] Note ID {serializer.data['id']} saved to database.")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        print(f"[ERROR] Note validation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
