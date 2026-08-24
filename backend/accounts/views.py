@@ -89,37 +89,39 @@ def create_user_view(request):
 
 
 @api_view(['PATCH', 'DELETE'])
-@permission_classes([IsAdminRole])
+@permission_classes([IsAdminRole]) # Our custom bouncer
 def update_user_view(request, user_id):
     """
-    ADMIN ONLY: Update or Delete a user by UUID.
-    Matches URL: path('users/<uuid:user_id>/update/')
+    ADMIN ONLY: Update roles or delete users.
+    URL: /api/users/<uuid:user_id>/update/
     """
+    # 1. Finding the user in the Postgres DB
     target_user = get_object_or_404(User, id=user_id)
 
+    # --- DELETE LOGIC ---
     if request.method == 'DELETE':
-        # Prevent Admin from deleting themselves!
+        # Safety Trap: Don't let an admin delete themselves!
         if target_user == request.user:
-            return Response({"error": "You cannot delete your own account"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Self-deletion is blocked for security."}, status=status.HTTP_400_BAD_REQUEST)
         
+        username = target_user.username
         target_user.delete()
-        print(f"[ADMIN ACTION] Deleted user: {target_user.username}")
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        print(f"[ADMIN ACTION] User {username} deleted by {request.user.username}")
+        return Response({"message": "User removed"}, status=status.HTTP_204_NO_CONTENT)
 
+    # --- UPDATE (ROLE) LOGIC ---
     if request.method == 'PATCH':
-        serializer = UserSerializer(target_user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            
-            # Handle password reset if sent
-            password = request.data.get('password')
-            if password:
-                target_user.set_password(password)
-                target_user.save()
-                
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # We only allow changing the 'role' here for now
+        new_role = request.data.get('role')
+        if new_role not in ['admin', 'staff', 'user']:
+            return Response({"error": "Invalid role type"}, status=status.HTTP_400_BAD_REQUEST)
 
+        target_user.role = new_role
+        target_user.save()
+        
+        print(f"[ADMIN ACTION] Role for {target_user.username} changed to {new_role}")
+        serializer = UserSerializer(target_user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 # ---------------------------------------------------------
 # CHANGE PASSWORD
 # ---------------------------------------------------------
