@@ -14,6 +14,7 @@ import EditNote from "./pages/EditNote.jsx";
 import Tasks from "./pages/Tasks.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Settings from "./pages/Settings.jsx";
+import Patients from "./pages/Patients.jsx";
 
 // Components
 import Layout from "./components/Layout.jsx";
@@ -70,6 +71,10 @@ function App() {
           {/* Management Area */}
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/settings" element={<Settings theme={theme} toggleTheme={toggleTheme} />} />
+
+          {/* Patients area */}
+           <Route path="/patients" element={<Patients />} />
+
 
           {/* === ADMIN ONLY AREA === */}
           <Route element={<RequireRole allowed={["admin"]} />}>
