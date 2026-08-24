@@ -17,4 +17,7 @@ urlpatterns = [
     path('create-user/', views.create_user_view, name='api-create-user'),
     path('users/', views.list_users_view, name='list-users'),
     path('users/<uuid:user_id>/update/', views.update_user_view, name='update-user'),
+
+    path('patients/', views.manage_patients, name='manage-patients'),
+    path('patients/<uuid:patient_id>/', views.patient_detail, name='patient-detail'),
 ]

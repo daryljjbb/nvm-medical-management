@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Note
+from .models import Note,Patient
 import logging
 
 # Set up logging to track serialization errors in Render
@@ -74,3 +74,16 @@ class NoteSerializer(serializers.ModelSerializer):
         if len(value.strip()) < 2:
             raise serializers.ValidationError("Note content is too short.")
         return value
+
+class PatientSerializer(serializers.ModelSerializer):
+    # We bring in the email from the linked User account if it exists
+    user_email = serializers.ReadOnlyField(source='user.email')
+
+    class Meta:
+        model = Patient
+        fields = [
+            'id', 'user', 'user_email', 'first_name', 'last_name', 
+            'date_of_birth', 'gender', 'blood_group', 'address', 
+            'city', 'emergency_contact_name', 'emergency_contact_phone',
+            'created_at'
+        ]

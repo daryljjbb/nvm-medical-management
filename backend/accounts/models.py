@@ -1,6 +1,8 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 from django.conf import settings # Add this import at the top
+import uuid
+
 
 class CustomUserManager(UserManager):
     def create_user(self, username, email=None, password=None, **extra_fields):
@@ -54,3 +56,57 @@ class Note(models.Model):
 
     def __str__(self):
         return f"From {self.sender.username} to {self.receiver.username} at {self.timestamp}"
+
+class Patient(models.Model):
+    # Medical choices to ensure data integrity
+    BLOOD_GROUPS = [
+        ('A+', 'A Positive'), ('A-', 'A Negative'),
+        ('B+', 'B Positive'), ('B-', 'B Negative'),
+        ('AB+', 'AB Positive'), ('AB-', 'AB Negative'),
+        ('O+', 'O Positive'), ('O-', 'O Negative'),
+        ('UNK', 'Unknown'),
+    ]
+
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+    ]
+
+    # 1. Identity & Linking
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Linking to User is optional (null=True) so staff can create files for elderly/infants 
+    # who don't have email/login accounts.
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        related_name="patient_profile"
+    )
+
+    # 2. General Medical Data
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    date_of_birth = models.DateField()
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    blood_group = models.CharField(max_length=3, choices=BLOOD_GROUPS, default='UNK')
+    
+    # 3. Contact & Address
+    address = models.TextField(blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    
+    # 4. Emergency Contact (Crucial for Medical)
+    emergency_contact_name = models.CharField(max_length=200)
+    emergency_contact_phone = models.CharField(max_length=20)
+
+    # 5. Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name} - DOB: {self.date_of_birth}"
+
+    class Meta:
+        ordering = ['-created_at']
+

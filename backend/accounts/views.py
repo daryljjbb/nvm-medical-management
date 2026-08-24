@@ -10,9 +10,10 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 # Local Imports
-from .models import Note
-from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer
+from .models import Note,Patient
+from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer
 from .permissions import IsAdminRole # The custom bouncer we made
+from .permissions import IsStaffOrAdminRole
 
 User = get_user_model()
 
@@ -232,3 +233,49 @@ def manage_notes(request):
         
         print(f"[ERROR] Note validation failed: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsStaffOrAdminRole]) # Only medical staff can access
+def manage_patients(request):
+    """
+    GET: List all patients.
+    POST: Register a new patient in the system.
+    """
+    if request.method == 'GET':
+        print(f"[MEDICAL] {request.user.username} is accessing the Patient Directory.")
+        patients = Patient.objects.all()
+        serializer = PatientSerializer(patients, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        print(f"[MEDICAL] Creating new patient record...")
+        serializer = PatientSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        print(f"[ERROR] Patient validation failed: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'PUT', 'DELETE'])
+@permission_classes([IsStaffOrAdminRole])
+def patient_detail(request, patient_id):
+    """
+    Handle specific patient file operations.
+    """
+    patient = get_object_or_404(Patient, id=patient_id)
+
+    if request.method == 'GET':
+        serializer = PatientSerializer(patient)
+        return Response(serializer.data)
+
+    if request.method == 'PUT':
+        serializer = PatientSerializer(patient, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'DELETE':
+        patient.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
