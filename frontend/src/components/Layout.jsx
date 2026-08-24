@@ -36,15 +36,20 @@ export default function Layout({ children, theme, toggleTheme }) {
         {/* MIDDLE: Navigation Links */}
         <nav className="sidebar-nav">
           {role === "admin" && (
-            <NavLink to="/admin" className="sidebar-link">
-              <i className="bi bi-shield-lock-fill"></i>
-              <span className="link-text">Admin Panel</span>
-            </NavLink>
-          )}
+          <NavLink to="/admin" className="sidebar-link">
+            <i className="bi bi-shield-lock-fill"></i>
+            <span className="link-text">Admin Panel</span>
+          </NavLink>
+          <NavLink to="/settings" className="sidebar-link">
+            <i class="bi bi-gear-fill"></i>
+            <span className="link-text">Settings</span>
+          </NavLink>
 
+          )
           <NavLink to="/dashboard" className="sidebar-link">
             <i className="bi bi-house-door-fill"></i>
-            <span className="link-text">Dashboard</span>
+            <span className="link-text">Dashboard</span>          
+
           </NavLink>
 
           <NavLink to="/notes" className="sidebar-link">
