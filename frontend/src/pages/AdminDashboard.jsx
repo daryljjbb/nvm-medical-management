@@ -183,11 +183,4 @@ export default function AdminDashboard() {
       )}
     </div>
   );
-}              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 }
