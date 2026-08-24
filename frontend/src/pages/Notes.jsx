@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apiFetch } from "../api";
+import { apiFetch } from "../utils/api.js";
 
 export default function Notes() {
   const [notes, setNotes] = useState([]);
