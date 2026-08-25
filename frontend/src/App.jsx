@@ -17,6 +17,8 @@ import Settings from "./pages/Settings.jsx";
 import Patients from "./pages/Patients.jsx";
 import EditPatient from "./pages/EditPatient.jsx";
 import PatientDetails from "./pages/PatientDetails.jsx";
+import Appointments from "./pages/Appointments.jsx";
+
 
 // Components
 import Layout from "./components/Layout.jsx";
@@ -78,6 +80,10 @@ function App() {
            <Route path="/patients" element={<Patients />} />
            <Route path="/patients/:id" element={<PatientDetails />} /> {/* THE MISSING LINK */}
            <Route path="/patients/:id/edit" element={<EditPatient />} />
+
+            {/* Appoinment area */}
+
+          <Route path="/appointments" element={<Appointments />} />
 
 
           {/* === ADMIN ONLY AREA === */}

@@ -10,8 +10,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 # Local Imports
-from .models import Note,Patient
-from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer
+from .models import Note,Patient,Appointment
+from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer
 from .permissions import IsAdminRole # The custom bouncer we made
 from .permissions import IsStaffOrAdminRole
 
@@ -280,4 +280,39 @@ def patient_detail(request, patient_id):
 
     if request.method == 'DELETE':
         patient.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsStaffOrAdminRole])
+def manage_appointments(request):
+    if request.method == 'GET':
+        # List all upcoming appointments
+        appointments = Appointment.objects.all().order_by('date_time')
+        serializer = AppointmentSerializer(appointments, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        # Allow staff to book an appointment
+        serializer = AppointmentSerializer(data=request.data)
+        if serializer.is_valid():
+            # Auto-assign the staff member who is creating it, or allow manual selection
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['PATCH', 'DELETE'])
+@permission_classes([IsStaffOrAdminRole])
+def appointment_detail(request, pk):
+    appointment = get_object_or_404(Appointment, pk=pk)
+    
+    if request.method == 'PATCH':
+        serializer = AppointmentSerializer(appointment, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == 'DELETE':
+        appointment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

@@ -110,3 +110,38 @@ class Patient(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+class Appointment(models.Model):
+    STATUS_CHOICES = [
+        ('scheduled', 'Scheduled'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+        ('no_show', 'No Show'),
+    ]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # The Patient involved
+    patient = models.ForeignKey(
+        Patient, 
+        on_delete=models.CASCADE, 
+        related_name="appointments"
+    )
+    
+    # The Staff/Doctor assigned
+    staff = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name="assigned_appointments"
+    )
+
+    date_time = models.DateTimeField()
+    reason = models.TextField(help_text="Reason for visit")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='scheduled')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date_time']
+
+    def __str__(self):
+        return f"{self.patient.last_name} with {self.staff.username} on {self.date_time}"

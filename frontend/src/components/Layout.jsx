@@ -84,8 +84,10 @@ export default function Layout({ children, theme, toggleTheme }) {
             <i className="bi bi-person-circle"></i>
             <span className="link-text">Patients</span>
           </NavLink>
-
-
+           <NavLink to="/appointments" className="sidebar-link">
+            <i className="bi bi-person-circle"></i>
+            <span className="link-text">Appointments</span>
+          </NavLink>
 
           {/* BOTTOM SECTION: Pushed down by mt-auto */}
           <div className="mt-auto pt-3 border-top border-secondary border-opacity-25">

@@ -20,4 +20,7 @@ urlpatterns = [
 
     path('patients/', views.manage_patients, name='manage-patients'),
     path('patients/<uuid:patient_id>/', views.patient_detail, name='patient-detail'),
+
+    path('appointments/', views.manage_appointments, name='appointments'),
+    path('appointments/<uuid:pk>/', views.appointment_detail, name='appointment-detail'),
 ]

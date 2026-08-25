@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Note,Patient
+from .models import Note,Patient,Appointment
 import logging
 
 # Set up logging to track serialization errors in Render
@@ -87,3 +87,17 @@ class PatientSerializer(serializers.ModelSerializer):
             'city', 'emergency_contact_name', 'emergency_contact_phone',
             'created_at'
         ]
+
+class AppointmentSerializer(serializers.ModelSerializer):
+    patient_name = serializers.SerializerMethodField()
+    staff_name = serializers.ReadOnlyField(source='staff.username')
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'id', 'patient', 'patient_name', 'staff', 'staff_name', 
+            'date_time', 'reason', 'status', 'created_at'
+        ]
+
+    def get_patient_name(self, obj):
+        return f"{obj.patient.first_name} {obj.patient.last_name}"
