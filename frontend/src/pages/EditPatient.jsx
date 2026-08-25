@@ -48,33 +48,45 @@ export default function EditPatient() {
   /**
    * Handle Update Submission
    */
-  const handleUpdate = async (e) => {
+ const handleUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
     setStatus({ type: "", msg: "" });
 
-    console.log("[MEDICAL] Saving updates to patient file...");
+    console.log("[MEDICAL] Attempting to update patient record...");
+
     try {
-      const res = await apiFetch(`/api/patients/${id}//`, {
+      // ROOT CAUSE FIX: Strictly one trailing slash
+      const res = await apiFetch(`/api/patients/${id}/`, {
         method: "PUT",
         body: JSON.stringify(patient)
       });
 
       if (res.ok) {
+        console.log("[SUCCESS] Record updated.");
         setStatus({ type: "success", msg: "Record updated successfully!" });
-        // Return to directory after 1.5s
         setTimeout(() => navigate("/patients"), 1500);
       } else {
-        setStatus({ type: "danger", msg: "Failed to update record." });
+        // ROOT CAUSE FIX: Extract the specific error from Django
+        const errorData = await res.json();
+        console.error("[SERVER ERROR]", errorData);
+        
+        // If it's a validation error, it usually looks like { "first_name": ["This field is required"] }
+        const firstErrorKey = Object.keys(errorData)[0];
+        const errorMessage = errorData[firstErrorKey];
+        
+        setStatus({ 
+          type: "danger", 
+          msg: `Update failed: ${firstErrorKey} - ${errorMessage}` 
+        });
       }
     } catch (err) {
-      console.error("[SAVE ERROR]", err);
+      console.error("[NETWORK ERROR]", err);
+      setStatus({ type: "danger", msg: "Network error. Please check your connection." });
     } finally {
       setSaving(false);
     }
-  };
-
-  /**
+  };  /**
    * Handle Record Deletion
    */
   const handleDelete = async () => {
