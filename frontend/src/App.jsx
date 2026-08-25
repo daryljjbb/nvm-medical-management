@@ -16,6 +16,7 @@ import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Settings from "./pages/Settings.jsx";
 import Patients from "./pages/Patients.jsx";
 import EditPatient from "./pages/EditPatient.jsx";
+import PatientDetails from "./pages/PatientDetails.jsx";
 
 // Components
 import Layout from "./components/Layout.jsx";
@@ -75,6 +76,7 @@ function App() {
 
           {/* Patients area */}
            <Route path="/patients" element={<Patients />} />
+           <Route path="/patients/:id" element={<PatientDetails />} /> {/* THE MISSING LINK */}
            <Route path="/patients/:id/edit" element={<EditPatient />} />
 
 

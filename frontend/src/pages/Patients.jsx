@@ -64,16 +64,20 @@ export default function Patients() {
                   <td>{p.gender}</td>
                   <td><span className="badge bg-danger-subtle text-danger">{p.blood_group}</span></td>
                   <td>{p.emergency_contact_name} ({p.emergency_contact_phone})</td>
-                  <td className="text-end">
-                    <Link to={`/patients/${p.id}`} className="btn btn-sm btn-outline-primary">
-                      View Records
+                 <td className="text-end">
+                  <div className="d-flex gap-2 justify-content-end">
+                     {/* VIEW RECORDS - Points to /patients/:id */}
+                    <Link to={`/patients/${p.id}`} className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1">
+                       <i className="bi bi-eye-fill"></i> View Chart
                     </Link>
-                    <Link to={`/patients/${p.id}/edit`} className="btn btn-sm btn-outline-primary shadow-sm">
-                      <i className="bi bi-pencil-square"></i> 
-                        Edit Record
+    
+                       {/* EDIT RECORD - Points to /patients/:id/edit */}
+                    <Link to={`/patients/${p.id}/edit`} className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1">
+                       <i className="bi bi-pencil-square"></i> Edit
                     </Link>
-                  </td>
-                </tr>
+                </div>
+               </td>                
+              </tr>
               ))}
             </tbody>
           </table>
