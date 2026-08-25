@@ -27,21 +27,33 @@ export default function Appointments() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleCreate = async (e) => {
+ // pages/Appointments.jsx -> handleCreate function
+
+const handleCreate = async (e) => {
     e.preventDefault();
+    console.log("[APPOINTMENT] Sending booking request...");
+
+    // Logic: We only send patient, date_time, and reason.
+    // The backend now handles 'staff' automatically from the Token.
     const res = await apiFetch("/api/appointments/", {
       method: "POST",
       body: JSON.stringify({
-        ...newAppt,
-        staff: localStorage.getItem("user_id") || undefined // You'll need to store user_id on login
+        patient: newAppt.patient,
+        date_time: newAppt.date_time,
+        reason: newAppt.reason
       })
     });
+
     if (res.ok) {
+      console.log("[SUCCESS] Appointment booked.");
       setShowModal(false);
       fetchData();
+    } else {
+      const errorData = await res.json();
+      console.error("[SERVER REJECTED]", errorData);
+      alert("Booking failed: " + JSON.stringify(errorData));
     }
-  };
-
+};
   const updateStatus = async (id, status) => {
     await apiFetch(`/api/appointments/${id}/`, {
       method: "PATCH",

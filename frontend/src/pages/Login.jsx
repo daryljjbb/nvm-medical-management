@@ -24,9 +24,12 @@ export default function Login() {
         body: JSON.stringify({ username, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        
+    if (response.ok) {
+       const data = await response.json();
+       localStorage.setItem("token", data.token);
+       localStorage.setItem("user_id", data.user_id); // ROOT CAUSE FIX: Save the ID
+       localStorage.setItem("username", data.username);
+       localStorage.setItem("role", data.role);        
         // Use our central auth utility to save data
         auth.login(data.token, data.role, data.username);
 

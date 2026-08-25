@@ -21,30 +21,27 @@ User = get_user_model()
 # 1. AUTHENTICATION (Login)
 # ==========================================
 
+# accounts/views.py -> login_view
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @authentication_classes([])
 def login_view(request):
-    """
-    Public Login: Returns Token, Username, and Role.
-    """
     username = request.data.get('username')
     password = request.data.get('password')
-
     user = authenticate(username=username, password=password)
     
     if user:
         token, _ = Token.objects.get_or_create(user=user)
-        print(f"[AUTH SUCCESS] User: {username} | Role: {user.role}")
+        print(f"[AUTH SUCCESS] User: {username} | ID: {user.id}")
         return Response({
             "token": token.key,
+            "user_id": str(user.id), # ROOT CAUSE FIX: Send the UUID to the frontend
             "username": user.username,
             "role": user.role
         })
     
-    print(f"[AUTH FAILED] Invalid attempt for: {username}")
     return Response({"error": "Invalid Credentials"}, status=status.HTTP_401_UNAUTHORIZED)
-
 
 # ==========================================
 # 2. ADMIN USER MANAGEMENT (The source of the blank screen)
@@ -283,23 +280,31 @@ def patient_detail(request, patient_id):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# accounts/views.py -> manage_appointments
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsStaffOrAdminRole])
 def manage_appointments(request):
     if request.method == 'GET':
-        # List all upcoming appointments
         appointments = Appointment.objects.all().order_by('date_time')
         serializer = AppointmentSerializer(appointments, many=True)
         return Response(serializer.data)
 
     if request.method == 'POST':
-        # Allow staff to book an appointment
+        print(f"[MEDICAL] {request.user.username} is booking an appointment.")
         serializer = AppointmentSerializer(data=request.data)
+        
         if serializer.is_valid():
-            # Auto-assign the staff member who is creating it, or allow manual selection
-            serializer.save()
+            # ROOT CAUSE FIX: Force the 'staff' to be the person logged in
+            # This prevents a user from booking an appointment 'on behalf' 
+            # of another doctor without permission.
+            serializer.save(staff=request.user) 
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        # DEBUGGING: This will show exactly what failed in your Render logs
+        print(f"[VALIDATION ERROR] {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 @api_view(['PATCH', 'DELETE'])
 @permission_classes([IsStaffOrAdminRole])
