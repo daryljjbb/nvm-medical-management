@@ -1,9 +1,10 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Note,Patient,Appointment
+from .models import Note, Patient, Appointment
 import logging
 
 # Set up logging to track serialization errors in Render
+# This is crucial for seeing exactly why a '400 Bad Request' happens
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -11,18 +12,17 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     """
     Used for VIEWING and UPDATING user profiles.
-    We exclude the password here entirely for maximum security.
+    Excludes password for security.
     """
     class Meta:
         model = User
-        # 'id' is a UUID, DRF handles this conversion automatically
         fields = ['id', 'username', 'email', 'role', 'phone']
-        read_only_fields = ['id', 'role'] # Users cannot change their own ID or Role
+        # SECURITY: Users cannot change their own ID or Role
+        read_only_fields = ['id', 'role'] 
 
 class UserCreationSerializer(serializers.ModelSerializer):
     """
     Used ONLY for creating new users (Admin action).
-    Handles the password hashing via the CustomUserManager.
     """
     password = serializers.CharField(write_only=True, required=True, min_length=8)
 
@@ -32,33 +32,56 @@ class UserCreationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         try:
-            print(f"[SERIALIZER] Creating account for: {validated_data.get('username')}")
-            
-            # We use .create_user (our custom manager method) 
-            # to ensure the password is SALTED and HASHED.
-            user = User.objects.create_user(
-                username=validated_data['username'],
-                email=validated_data.get('email', ''),
-                password=validated_data['password'],
-                role=validated_data.get('role', 'user')
-            )
+            logger.info(f"Creating account for: {validated_data.get('username')}")
+            user = User.objects.create_user(**validated_data)
             return user
         except Exception as e:
-            logger.error(f"[SERIALIZER ERROR] User creation failed: {str(e)}")
+            logger.error(f"User creation failed: {str(e)}")
             raise serializers.ValidationError({"detail": "Could not create user account."})
+
+class PatientSerializer(serializers.ModelSerializer):
+    """
+    Handles clinical patient data.
+    """
+    class Meta:
+        model = Patient
+        fields = '__all__'
+
+# ==========================================
+# APPOINTMENT SERIALIZER (FIXED)
+# ==========================================
+class AppointmentSerializer(serializers.ModelSerializer):
+    # These fields help the frontend display Names instead of UUID strings
+    patient_name = serializers.ReadOnlyField(source='patient.last_name')
+    staff_name = serializers.ReadOnlyField(source='staff.username')
+    
+    # Formats date for the UI: "Oct 25, 2023 at 02:30 PM"
+    formatted_time = serializers.DateTimeField(
+        source='date_time', 
+        format="%b %d, %Y at %I:%M %p", 
+        read_only=True
+    )
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'id', 'patient', 'patient_name', 'staff', 'staff_name', 
+            'date_time', 'formatted_time', 'reason', 'status'
+        ]
+        # ROOT CAUSE FIX: 
+        # By adding 'staff' to read_only_fields, the Serializer won't 
+        # complain that the field is missing when you click "Confirm Booking".
+        read_only_fields = ['id', 'staff'] 
 
 class NoteSerializer(serializers.ModelSerializer):
     """
-    Handles medical notes/communications.
-    Uses ReadOnlyFields to show names instead of just UUIDs.
+    Handles internal medical communication.
     """
     sender_name = serializers.ReadOnlyField(source='sender.username')
     receiver_name = serializers.ReadOnlyField(source='receiver.username')
-    
-    # Human-readable date for the UI
     formatted_date = serializers.DateTimeField(
         source='timestamp', 
-        format="%b %d, %Y, %I:%M %p", 
+        format="%b %d, %Y", 
         read_only=True
     )
 
@@ -66,38 +89,5 @@ class NoteSerializer(serializers.ModelSerializer):
         model = Note
         fields = [
             'id', 'sender', 'sender_name', 'receiver', 
-            'receiver_name', 'content', 'formatted_date', 'is_read'
+            'receiver_name', 'content', 'formatted_date'
         ]
-
-    def validate_content(self, value):
-        """Medical notes should not be empty."""
-        if len(value.strip()) < 2:
-            raise serializers.ValidationError("Note content is too short.")
-        return value
-
-class PatientSerializer(serializers.ModelSerializer):
-    # We bring in the email from the linked User account if it exists
-    user_email = serializers.ReadOnlyField(source='user.email')
-
-    class Meta:
-        model = Patient
-        fields = [
-            'id', 'user', 'user_email', 'first_name', 'last_name', 
-            'date_of_birth', 'gender', 'blood_group', 'address', 
-            'city', 'emergency_contact_name', 'emergency_contact_phone',
-            'created_at'
-        ]
-
-class AppointmentSerializer(serializers.ModelSerializer):
-    patient_name = serializers.SerializerMethodField()
-    staff_name = serializers.ReadOnlyField(source='staff.username')
-
-    class Meta:
-        model = Appointment
-        fields = [
-            'id', 'patient', 'patient_name', 'staff', 'staff_name', 
-            'date_time', 'reason', 'status', 'created_at'
-        ]
-
-    def get_patient_name(self, obj):
-        return f"{obj.patient.first_name} {obj.patient.last_name}"

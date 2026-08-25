@@ -31,29 +31,37 @@ export default function Appointments() {
 
 const handleCreate = async (e) => {
     e.preventDefault();
+    setLoading(true);
     console.log("[APPOINTMENT] Sending booking request...");
 
-    // Logic: We only send patient, date_time, and reason.
-    // The backend now handles 'staff' automatically from the Token.
-    const res = await apiFetch("/api/appointments/", {
-      method: "POST",
-      body: JSON.stringify({
-        patient: newAppt.patient,
-        date_time: newAppt.date_time,
-        reason: newAppt.reason
-      })
-    });
+    try {
+      const res = await apiFetch("/api/appointments/", {
+        method: "POST",
+        body: JSON.stringify({
+          patient: newAppt.patient,
+          date_time: newAppt.date_time,
+          reason: newAppt.reason
+          // ROOT CAUSE FIX: No need to send 'staff' ID anymore
+        })
+      });
 
-    if (res.ok) {
-      console.log("[SUCCESS] Appointment booked.");
-      setShowModal(false);
-      fetchData();
-    } else {
-      const errorData = await res.json();
-      console.error("[SERVER REJECTED]", errorData);
-      alert("Booking failed: " + JSON.stringify(errorData));
+      if (res.ok) {
+        console.log("[SUCCESS] Appointment confirmed.");
+        setShowModal(false);
+        fetchData(); // Refresh the table list
+      } else {
+        const errorData = await res.json();
+        console.error("[SERVER ERROR]", errorData);
+        // Display the specific error from the backend
+        alert("Booking failed: " + JSON.stringify(errorData));
+      }
+    } catch (err) {
+      console.error("[CONNECTION ERROR]", err);
+    } finally {
+      setLoading(false);
     }
-};
+  };  
+
   const updateStatus = async (id, status) => {
     await apiFetch(`/api/appointments/${id}/`, {
       method: "PATCH",

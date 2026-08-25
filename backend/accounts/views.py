@@ -283,28 +283,32 @@ def patient_detail(request, patient_id):
 # accounts/views.py -> manage_appointments
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsStaffOrAdminRole])
+@permission_classes([IsAuthenticated]) # Or IsStaffOrAdminRole
 def manage_appointments(request):
+    """
+    Handles listing and creating medical appointments.
+    """
     if request.method == 'GET':
         appointments = Appointment.objects.all().order_by('date_time')
         serializer = AppointmentSerializer(appointments, many=True)
         return Response(serializer.data)
 
     if request.method == 'POST':
-        print(f"[MEDICAL] {request.user.username} is booking an appointment.")
+        print(f"[MEDICAL] {request.user.username} is attempting to book an appointment.")
+        
         serializer = AppointmentSerializer(data=request.data)
         
+        # Now that 'staff' is read_only in the serializer, 
+        # is_valid() will pass even if the field is missing!
         if serializer.is_valid():
-            # ROOT CAUSE FIX: Force the 'staff' to be the person logged in
-            # This prevents a user from booking an appointment 'on behalf' 
-            # of another doctor without permission.
-            serializer.save(staff=request.user) 
+            # ROOT CAUSE FIX: Manually inject the staff member during save
+            serializer.save(staff=request.user)
+            print(f"[SUCCESS] Appointment created for patient ID: {request.data.get('patient')}")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        # DEBUGGING: This will show exactly what failed in your Render logs
-        print(f"[VALIDATION ERROR] {serializer.errors}")
+        # If it fails, we see exactly why in the Render logs
+        print(f"[VALIDATION ERROR]: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @api_view(['PATCH', 'DELETE'])
 @permission_classes([IsStaffOrAdminRole])
