@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { apiFetch } from "../api"; // Centralized API helper
+import { apiFetch } from "../utils/api.js"; // Centralized API helper
 
 /**
  * PatientDetails Component
