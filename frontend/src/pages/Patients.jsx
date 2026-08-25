@@ -68,6 +68,10 @@ export default function Patients() {
                     <Link to={`/patients/${p.id}`} className="btn btn-sm btn-outline-primary">
                       View Records
                     </Link>
+                    <Link to={`/patients/${p.id}/edit`} className="btn btn-sm btn-outline-primary shadow-sm">
+                      <i className="bi bi-pencil-square"></i> 
+                        Edit Record
+                    </Link>
                   </td>
                 </tr>
               ))}

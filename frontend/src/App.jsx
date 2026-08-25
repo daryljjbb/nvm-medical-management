@@ -74,6 +74,7 @@ function App() {
 
           {/* Patients area */}
            <Route path="/patients" element={<Patients />} />
+           <Route path="/patients/:id/edit" element={<EditPatient />} />
 
 
           {/* === ADMIN ONLY AREA === */}
