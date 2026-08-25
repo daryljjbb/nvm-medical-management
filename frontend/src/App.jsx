@@ -15,6 +15,7 @@ import Tasks from "./pages/Tasks.jsx";
 import AdminDashboard from "./pages/AdminDashboard.jsx";
 import Settings from "./pages/Settings.jsx";
 import Patients from "./pages/Patients.jsx";
+import EditPatient from "./pages/EditPatient.jsx";
 
 // Components
 import Layout from "./components/Layout.jsx";
