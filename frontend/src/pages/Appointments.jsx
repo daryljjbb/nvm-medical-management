@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apiFetch } from "../api";
+import { apifetch } from "../utils/api.js";
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
