@@ -286,7 +286,7 @@ def patient_detail(request, patient_id):
 # accounts/views.py -> manage_appointments
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated]) # Or IsStaffOrAdminRole
+@permission_classes([IsStaffOrAdminRole]) # Or IsStaffOrAdminRole
 def manage_appointments(request):
     """
     Handles listing and creating medical appointments.
