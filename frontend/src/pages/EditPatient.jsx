@@ -2,15 +2,10 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiFetch } from "../utils/api.js";
 
-/**
- * EditPatient Component
- * Handles modifications to clinical patient files.
- */
 export default function EditPatient() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // 1. STATE MANAGEMENT
   const [patient, setPatient] = useState({
     first_name: "", last_name: "", date_of_birth: "",
     gender: "M", blood_group: "UNK", address: "",
@@ -21,14 +16,11 @@ export default function EditPatient() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState({ type: "", msg: "" });
 
-  /**
-   * Fetch current patient data on mount
-   */
   useEffect(() => {
     async function loadPatient() {
       setLoading(true);
-      console.log(`[MEDICAL] Fetching patient file: ${id}`);
       try {
+        // ROOT CAUSE FIX: Ensure only ONE trailing slash
         const res = await apiFetch(`/api/patients/${id}/`);
         if (res.ok) {
           const data = await res.json();
@@ -45,57 +37,51 @@ export default function EditPatient() {
     loadPatient();
   }, [id]);
 
-  /**
-   * Handle Update Submission
-   */
- const handleUpdate = async (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     setSaving(true);
     setStatus({ type: "", msg: "" });
 
-    console.log("[MEDICAL] Attempting to update patient record...");
-
     try {
-      // ROOT CAUSE FIX: Strictly one trailing slash
+      // ROOT CAUSE FIX: Strictly ONE trailing slash
       const res = await apiFetch(`/api/patients/${id}/`, {
         method: "PUT",
         body: JSON.stringify(patient)
       });
 
       if (res.ok) {
-        console.log("[SUCCESS] Record updated.");
         setStatus({ type: "success", msg: "Record updated successfully!" });
         setTimeout(() => navigate("/patients"), 1500);
       } else {
-        // ROOT CAUSE FIX: Extract the specific error from Django
-        const errorData = await res.json();
-        console.error("[SERVER ERROR]", errorData);
-        
-        // If it's a validation error, it usually looks like { "first_name": ["This field is required"] }
-        const firstErrorKey = Object.keys(errorData)[0];
-        const errorMessage = errorData[firstErrorKey];
-        
-        setStatus({ 
-          type: "danger", 
-          msg: `Update failed: ${firstErrorKey} - ${errorMessage}` 
-        });
+        setStatus({ type: "danger", msg: "Failed to update record." });
       }
     } catch (err) {
-      console.error("[NETWORK ERROR]", err);
-      setStatus({ type: "danger", msg: "Network error. Please check your connection." });
+      console.error("[SAVE ERROR]", err);
     } finally {
       setSaving(false);
     }
-  };  /**
-   * Handle Record Deletion
-   */
+  };
+
   const handleDelete = async () => {
     if (!window.confirm("WARNING: Are you sure you want to delete this medical file permanently?")) return;
     
+    console.log(`[MEDICAL] Requesting deletion for patient: ${id}`);
     try {
-      const res = await apiFetch(`/api/patients/${id}//`, { method: "DELETE" });
-      if (res.ok) navigate("/patients");
-    } catch (err) { console.error(err); }
+      // ROOT CAUSE FIX: Changed URL from .../${id}// to .../${id}/
+      const res = await apiFetch(`/api/patients/${id}/`, { 
+        method: "DELETE" 
+      });
+
+      if (res.ok || res.status === 204) {
+        console.log("[SUCCESS] Patient deleted.");
+        navigate("/patients");
+      } else {
+        console.error("[DELETE FAILED] Status:", res.status);
+        alert("Failed to delete patient. Check Render logs.");
+      }
+    } catch (err) { 
+      console.error("[NETWORK ERROR]", err); 
+    }
   };
 
   if (loading) return <div className="text-center py-5"><div className="spinner-border"></div></div>;
@@ -103,19 +89,13 @@ export default function EditPatient() {
   return (
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="fw-bold">
-          <i className="bi bi-person-gear text-primary me-2"></i>
-          Edit Patient: {patient.first_name} {patient.last_name}
-        </h2>
-        <button className="btn btn-outline-secondary" onClick={() => navigate("/patients")}>
-          <i className="bi bi-arrow-left"></i> Directory
-        </button>
+        <h2 className="fw-bold">Edit Patient: {patient.first_name} {patient.last_name}</h2>
+        <button className="btn btn-outline-secondary" onClick={() => navigate("/patients")}>Back</button>
       </div>
 
       <div className="card border-0 shadow-sm p-4">
         <form onSubmit={handleUpdate}>
           <div className="row g-3">
-            {/* Identity Group */}
             <div className="col-md-6">
               <label className="form-label small fw-bold">First Name</label>
               <input type="text" className="form-control" value={patient.first_name} 
@@ -126,12 +106,10 @@ export default function EditPatient() {
               <input type="text" className="form-control" value={patient.last_name} 
                 onChange={e => setPatient({...patient, last_name: e.target.value})} required />
             </div>
-
-            {/* Medical Group */}
             <div className="col-md-4">
-              <label className="form-label small fw-bold">Date of Birth</label>
-              <input type="date" className="form-control" value={patient.date_of_birth} 
-                onChange={e => setPatient({...patient, date_of_birth: e.target.value})} required />
+                <label className="form-label small fw-bold">Date of Birth</label>
+                <input type="date" className="form-control" value={patient.date_of_birth} 
+                  onChange={e => setPatient({...patient, date_of_birth: e.target.value})} required />
             </div>
             <div className="col-md-4">
               <label className="form-label small fw-bold">Blood Group</label>
@@ -151,20 +129,6 @@ export default function EditPatient() {
               </select>
             </div>
 
-            {/* Emergency Group */}
-            <div className="col-12 mt-4"><h6 className="fw-bold border-bottom pb-2">Emergency Contact Information</h6></div>
-            <div className="col-md-6">
-              <label className="form-label small fw-bold">Contact Name</label>
-              <input type="text" className="form-control" value={patient.emergency_contact_name} 
-                onChange={e => setPatient({...patient, emergency_contact_name: e.target.value})} required />
-            </div>
-            <div className="col-md-6">
-              <label className="form-label small fw-bold">Contact Phone</label>
-              <input type="text" className="form-control" value={patient.emergency_contact_phone} 
-                onChange={e => setPatient({...patient, emergency_contact_phone: e.target.value})} required />
-            </div>
-
-            {/* Action Buttons */}
             <div className="col-12 mt-4 pt-3 border-top d-flex gap-2">
               <button className="btn btn-primary px-4" type="submit" disabled={saving}>
                 {saving ? "Saving..." : "Update Record"}
@@ -177,9 +141,7 @@ export default function EditPatient() {
         </form>
 
         {status.msg && (
-          <div className={`alert alert-${status.type} mt-4 border-0 shadow-sm`}>
-            {status.msg}
-          </div>
+          <div className={`alert alert-${status.type} mt-4 border-0 shadow-sm`}>{status.msg}</div>
         )}
       </div>
     </div>

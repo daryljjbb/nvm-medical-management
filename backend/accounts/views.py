@@ -257,6 +257,7 @@ def manage_patients(request):
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsStaffOrAdminRole])
 def patient_detail(request, patient_id):
+    # Trapping: Verify UUID exists
     patient = get_object_or_404(Patient, id=patient_id)
 
     if request.method == 'GET':
@@ -264,18 +265,20 @@ def patient_detail(request, patient_id):
         return Response(serializer.data)
 
     if request.method == 'PUT':
-        # partial=True is safer as it only updates the fields you actually send
+        # partial=True allows the frontend to send just what changed
         serializer = PatientSerializer(patient, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            print(f"[MEDICAL SUCCESS] {patient.last_name} record updated.")
+            # LOGGING: Print ID only, never the whole 'patient' object to avoid SIGKILL
+            print(f"[MEDICAL SUCCESS] Updated Patient Record ID: {patient.id}")
             return Response(serializer.data)
         
-        # ROOT CAUSE TRAPPING: Log specific validation errors to Render console
-        print(f"[MEDICAL ERROR] Validation failed: {serializer.errors}")
+        print(f"[VALIDATION ERROR] {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     if request.method == 'DELETE':
+        # LOGGING: Print ID before deletion
+        print(f"[MEDICAL WARNING] Deleting Patient Record ID: {patient_id}")
         patient.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
