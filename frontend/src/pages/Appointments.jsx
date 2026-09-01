@@ -5,60 +5,45 @@ export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Modals
   const [showBookingModal, setShowBookingModal] = useState(false);
-  const [showEncounterModal, setShowEncounterModal] = useState(false);
-
-  // Forms
   const [newAppt, setNewAppt] = useState({ patient: "", date_time: "", reason: "" });
-  const [selectedAppt, setSelectedAppt] = useState(null);
-  const [encounterForm, setEncounterForm] = useState({
-    bp_systolic: "", bp_diastolic: "", heart_rate: "",
-    temperature: "", o2_saturation: "", chief_complaint: "",
-    diagnosis: "", treatment_plan: ""
-  });
 
   const fetchData = async () => {
     setLoading(true);
-    console.log("--- [DEBUG] Fetching Appointments and Patients ---");
-    
+    console.log("--- [DEBUG] Appointments: Starting Data Load ---");
+
+    // 1. Fetch Patients (Independent)
     try {
-      const [apptRes, patientRes] = await Promise.all([
-        apiFetch("/api/appointments/"),
-        apiFetch("/api/patients/")
-      ]);
-
-      if (apptRes.ok) {
-        const apptData = await apptRes.json();
-        console.log("[DEBUG] Appointments received:");
-        console.table(apptData);
-        setAppointments(apptData);
+      const pRes = await apiFetch("/api/patients/");
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        console.log(`[DEBUG] Successfully loaded ${pData.length} patients.`);
+        setPatients(pData);
       } else {
-        console.error(`[DEBUG] Appointments API Failed: ${apptRes.status}`);
-      }
-
-      if (patientRes.ok) {
-        const patientData = await patientRes.json();
-        console.log("[DEBUG] Patients received for dropdown:");
-        console.table(patientData); // This will show you exactly what's in the list
-        setPatients(patientData);
-      } else {
-        console.error(`[DEBUG] Patients API Failed: ${patientRes.status}`);
+        console.error(`[DEBUG] Patient Fetch Failed. Status: ${pRes.status}`);
       }
     } catch (err) {
-      console.error("[CRITICAL FETCH ERROR]", err);
-    } finally {
-      setLoading(false);
+      console.error("[DEBUG] Patient Fetch Network Error:", err);
     }
+
+    // 2. Fetch Appointments (Independent)
+    try {
+      const aRes = await apiFetch("/api/appointments/");
+      if (aRes.ok) {
+        const aData = await aRes.json();
+        setAppointments(aData);
+      }
+    } catch (err) {
+      console.error("[DEBUG] Appointment Fetch Network Error:", err);
+    }
+
+    setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, []);
 
   const handleCreateBooking = async (e) => {
     e.preventDefault();
-    if (!newAppt.patient) return alert("Please select a patient first!");
-
     const res = await apiFetch("/api/appointments/", {
       method: "POST",
       body: JSON.stringify(newAppt)
@@ -70,19 +55,7 @@ export default function Appointments() {
       fetchData();
     } else {
       const err = await res.json();
-      alert("Booking Error: " + JSON.stringify(err));
-    }
-  };
-
-  const handleSaveEncounter = async (e) => {
-    e.preventDefault();
-    const res = await apiFetch("/api/encounters/", {
-      method: "POST",
-      body: JSON.stringify({ appointment: selectedAppt.id, ...encounterForm })
-    });
-    if (res.ok) {
-      setShowEncounterModal(false);
-      fetchData();
+      alert("Booking failed: " + JSON.stringify(err));
     }
   };
 
@@ -90,7 +63,7 @@ export default function Appointments() {
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2 className="fw-bold"><i className="bi bi-calendar-check text-primary me-2"></i>Clinic Schedule</h2>
-        <button className="btn btn-primary" onClick={() => setShowBookingModal(true)}>
+        <button className="btn btn-primary shadow-sm" onClick={() => setShowBookingModal(true)}>
           <i className="bi bi-plus-circle-fill"></i> Book Appointment
         </button>
       </div>
@@ -106,7 +79,6 @@ export default function Appointments() {
                   <th>Patient</th>
                   <th>Date & Time</th>
                   <th>Status</th>
-                  <th className="text-end">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,17 +92,10 @@ export default function Appointments() {
                           {appt.status.toUpperCase()}
                         </span>
                       </td>
-                      <td className="text-end">
-                        {appt.status === 'scheduled' && (
-                          <button className="btn btn-sm btn-success" onClick={() => { setSelectedAppt(appt); setShowEncounterModal(true); }}>
-                            Start Visit
-                          </button>
-                        )}
-                      </td>
                     </tr>
                   ))
                 ) : (
-                  <tr><td colSpan="4" className="text-center py-4 text-muted">No appointments found.</td></tr>
+                  <tr><td colSpan="3" className="text-center py-4 text-muted">No appointments scheduled today.</td></tr>
                 )}
               </tbody>
             </table>
@@ -151,9 +116,12 @@ export default function Appointments() {
                 <div className="modal-body">
                   <div className="mb-3">
                     <label className="form-label small fw-bold">Select Patient</label>
-                    <select className="form-select" required
+                    <select 
+                      className="form-select" 
+                      required
                       value={newAppt.patient}
-                      onChange={e => setNewAppt({...newAppt, patient: e.target.value})}>
+                      onChange={e => setNewAppt({...newAppt, patient: e.target.value})}
+                    >
                       <option value="">Choose a registered patient...</option>
                       {patients.map(p => (
                         <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
@@ -162,7 +130,7 @@ export default function Appointments() {
                     {patients.length === 0 && (
                       <div className="form-text text-danger">
                         <i className="bi bi-exclamation-triangle"></i> No patients found in database. 
-                        Go to "Patients" tab to register one first.
+                        Check your connection or permissions.
                       </div>
                     )}
                   </div>
@@ -179,18 +147,11 @@ export default function Appointments() {
                 </div>
                 <div className="modal-footer">
                   <button type="button" className="btn btn-light" onClick={() => setShowBookingModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary" disabled={patients.length === 0}>Book Appointment</button>
+                  <button type="submit" className="btn btn-primary" disabled={patients.length === 0}>Confirm Booking</button>
                 </div>
               </form>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* ENCOUNTER MODAL (Vitals) */}
-      {showEncounterModal && selectedAppt && (
-        <div className="modal fade show d-block" style={{background: 'rgba(0,0,0,0.7)'}}>
-          {/* ... [Rest of your encounter modal code from previous step] ... */}
         </div>
       )}
     </div>
