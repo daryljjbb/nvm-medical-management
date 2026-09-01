@@ -363,3 +363,15 @@ def create_encounter(request):
     # the serializer will catch it here.
     print(f"[VALIDATION ERROR] Encounter failed: {serializer.errors}")
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsStaffOrAdminRole])
+def encounter_detail(request, pk):
+    """
+    Retrieves a single medical record (encounter) by its UUID.
+    """
+    print(f"[MEDICAL] Fetching encounter record: {pk}")
+    encounter = get_object_or_404(ClinicalEncounter, id=pk)
+    serializer = ClinicalEncounterSerializer(encounter)
+    return Response(serializer.data)
