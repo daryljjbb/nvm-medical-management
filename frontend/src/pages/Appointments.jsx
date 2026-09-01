@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { apifetch } from "../utils/api.js";
+import { apiFetch } from "../utils/api.js";
 
 export default function Appointments() {
   const [appointments, setAppointments] = useState([]);
@@ -191,118 +191,6 @@ export default function Appointments() {
       {showEncounterModal && selectedAppt && (
         <div className="modal fade show d-block" style={{background: 'rgba(0,0,0,0.7)'}}>
           {/* ... [Rest of your encounter modal code from previous step] ... */}
-        </div>
-      )}
-    </div>
-  );
-}      {/* --- MODAL 1: BOOKING --- */}
-      {showBookingModal && (
-        <div className="modal fade show d-block" style={{background: 'rgba(0,0,0,0.5)'}}>
-          <div className="modal-dialog">
-            <div className="modal-content border-0 shadow">
-              <div className="modal-header">
-                <h5 className="modal-title fw-bold">Schedule New Appointment</h5>
-                <button className="btn-close" onClick={() => setShowBookingModal(false)}></button>
-              </div>
-              <form onSubmit={handleCreateBooking}>
-                <div className="modal-body">
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Patient</label>
-                    <select className="form-select" required
-                      onChange={e => setNewAppt({...newAppt, patient: e.target.value})}>
-                      <option value="">Select Patient...</option>
-                      {patients.map(p => (
-                        <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Date & Time</label>
-                    <input type="datetime-local" className="form-control" required
-                      onChange={e => setNewAppt({...newAppt, date_time: e.target.value})} />
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Reason for Visit</label>
-                    <textarea className="form-control" rows="2" required
-                      onChange={e => setNewAppt({...newAppt, reason: e.target.value})}></textarea>
-                  </div>
-                </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-light" onClick={() => setShowBookingModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary">Book Appointment</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- MODAL 2: CLINICAL ENCOUNTER (VITALS) --- */}
-      {showEncounterModal && selectedAppt && (
-        <div className="modal fade show d-block" style={{background: 'rgba(0,0,0,0.7)'}}>
-          <div className="modal-dialog modal-lg modal-dialog-scrollable">
-            <div className="modal-content border-0 shadow-lg">
-              <div className="modal-header bg-success text-white">
-                <h5 className="modal-title fw-bold">Clinical Encounter: {selectedAppt.patient_name}</h5>
-                <button className="btn-close btn-close-white" onClick={() => setShowEncounterModal(false)}></button>
-              </div>
-              <form onSubmit={handleSaveEncounter}>
-                <div className="modal-body p-4">
-                  
-                  <h6 className="fw-bold text-uppercase text-muted small mb-3 border-bottom pb-1">Vitals Capture</h6>
-                  <div className="row g-3 mb-4">
-                    <div className="col-md-4">
-                      <label className="form-label small fw-bold">Blood Pressure</label>
-                      <div className="input-group input-group-sm">
-                        <input type="number" className="form-control" placeholder="Sys" required
-                          onChange={e => setEncounterForm({...encounterForm, bp_systolic: e.target.value})} />
-                        <span className="input-group-text">/</span>
-                        <input type="number" className="form-control" placeholder="Dia" required
-                          onChange={e => setEncounterForm({...encounterForm, bp_diastolic: e.target.value})} />
-                      </div>
-                    </div>
-                    <div className="col-md-2">
-                      <label className="form-label small fw-bold">HR (BPM)</label>
-                      <input type="number" className="form-control form-control-sm" required
-                        onChange={e => setEncounterForm({...encounterForm, heart_rate: e.target.value})} />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label small fw-bold">Temp (°F)</label>
-                      <input type="number" step="0.1" className="form-control form-control-sm" required
-                        onChange={e => setEncounterForm({...encounterForm, temperature: e.target.value})} />
-                    </div>
-                    <div className="col-md-3">
-                      <label className="form-label small fw-bold">O2 Sat %</label>
-                      <input type="number" className="form-control form-control-sm" required
-                        onChange={e => setEncounterForm({...encounterForm, o2_saturation: e.target.value})} />
-                    </div>
-                  </div>
-
-                  <h6 className="fw-bold text-uppercase text-muted small mb-3 border-bottom pb-1">Clinical Observations</h6>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Chief Complaint</label>
-                    <textarea className="form-control" rows="2" required placeholder="What brought the patient in?"
-                      onChange={e => setEncounterForm({...encounterForm, chief_complaint: e.target.value})}></textarea>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Diagnosis</label>
-                    <textarea className="form-control" rows="2" required placeholder="Clinical findings..."
-                      onChange={e => setEncounterForm({...encounterForm, diagnosis: e.target.value})}></textarea>
-                  </div>
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold">Treatment Plan</label>
-                    <textarea className="form-control" rows="2" required placeholder="Prescriptions, follow-up, etc."
-                      onChange={e => setEncounterForm({...encounterForm, treatment_plan: e.target.value})}></textarea>
-                  </div>
-
-                </div>
-                <div className="modal-footer bg-light">
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowEncounterModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-success px-4">Sign & Save Record</button>
-                </div>
-              </form>
-            </div>
-          </div>
         </div>
       )}
     </div>
