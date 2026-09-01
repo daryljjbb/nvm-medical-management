@@ -75,7 +75,13 @@ class AppointmentSerializer(serializers.ModelSerializer):
         # ROOT CAUSE FIX: 
         # By adding 'staff' to read_only_fields, the Serializer won't 
         # complain that the field is missing when you click "Confirm Booking".
-        read_only_fields = ['id', 'staff'] 
+        read_only_fields = ['id', 'staff']
+
+    def get_encounter_id(self, obj):
+        try:
+            return obj.encounter.id
+        except:
+            return None
 
 class NoteSerializer(serializers.ModelSerializer):
     """

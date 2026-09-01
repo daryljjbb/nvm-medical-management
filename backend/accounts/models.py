@@ -144,7 +144,8 @@ class Appointment(models.Model):
         ordering = ['date_time']
 
     def __str__(self):
-        return f"{self.patient.last_name} with {self.staff.username} on {self.date_time}"
+         # Good: Uses a simple string
+       return f"Appt {self.id}"
 
 
 class ClinicalEncounter(models.Model):
@@ -187,4 +188,5 @@ class ClinicalEncounter(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Encounter for {self.appointment.patient.last_name} on {self.created_at.date()}"
+         # Good: Uses a simple string
+        return f"Encounter {self.id}"
