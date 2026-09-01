@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from .models import Note, Patient, Appointment,ClinicalEncounter
-import loggingE
+import logging
 
 # Set up logging to track serialization errors in Render
 # This is crucial for seeing exactly why a '400 Bad Request' happens
