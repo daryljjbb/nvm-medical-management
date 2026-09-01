@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Note, Patient, Appointment
-import logging
+from .models import Note, Patient, Appointment,ClinicalEncounter
+import loggingE
 
 # Set up logging to track serialization errors in Render
 # This is crucial for seeing exactly why a '400 Bad Request' happens
@@ -62,11 +62,15 @@ class AppointmentSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+      # ROOT CAUSE FIX: This allows the frontend to see if a visit is already documented
+    # It returns the UUID of the encounter, or null if it hasn't happened yet
+    encounter_id = serializers.ReadOnlyField(source='encounter.id')
+
     class Meta:
         model = Appointment
         fields = [
             'id', 'patient', 'patient_name', 'staff', 'staff_name', 
-            'date_time', 'formatted_time', 'reason', 'status'
+            'date_time', 'formatted_time', 'reason', 'status','encounter_id'
         ]
         # ROOT CAUSE FIX: 
         # By adding 'staff' to read_only_fields, the Serializer won't 
@@ -91,3 +95,22 @@ class NoteSerializer(serializers.ModelSerializer):
             'id', 'sender', 'sender_name', 'receiver', 
             'receiver_name', 'content', 'formatted_date'
         ]
+
+class ClinicalEncounterSerializer(serializers.ModelSerializer):
+    # Show the name of the doctor who signed the record
+    signed_by_username = serializers.ReadOnlyField(source='signed_by.username')
+    
+    # Format the timestamp: "Oct 25, 2023"
+    date_formatted = serializers.DateTimeField(source='created_at', format="%b %d, %Y", read_only=True)
+
+    class Meta:
+        model = ClinicalEncounter
+        fields = [
+            'id', 'appointment', 'bp_systolic', 'bp_diastolic', 
+            'heart_rate', 'temperature', 'o2_saturation', 
+            'chief_complaint', 'diagnosis', 'treatment_plan', 
+            'signed_by', 'signed_by_username', 'date_formatted'
+        ]
+        # signed_by is set automatically in the view, like we did for staff
+        read_only_fields = ['id', 'signed_by']
+

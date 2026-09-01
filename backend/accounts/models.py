@@ -145,3 +145,46 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"{self.patient.last_name} with {self.staff.username} on {self.date_time}"
+
+
+class ClinicalEncounter(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Linked to the specific appointment
+    appointment = models.OneToOneField(
+        Appointment, 
+        on_delete=models.CASCADE, 
+        related_name="encounter"
+    )
+
+      # --- STRUCTURED VITALS ---
+    # Blood Pressure: Systolic / Diastolic (e.g., 120 / 80)
+    bp_systolic = models.IntegerField(null=True, blank=True, verbose_name="Systolic BP")
+    bp_diastolic = models.IntegerField(null=True, blank=True, verbose_name="Diastolic BP")
+    
+    # Heart Rate: Beats per minute
+    heart_rate = models.IntegerField(null=True, blank=True, verbose_name="Heart Rate (BPM)")
+    
+    # Temperature in Fahrenheit (e.g., 98.6)
+    temperature = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    
+    # Oxygen Saturation (e.g., 98%)
+    o2_saturation = models.IntegerField(null=True, blank=True, verbose_name="O2 Saturation %")
+
+    
+    # Clinical Data
+    vitals_summary = models.CharField(max_length=255, help_text="e.g., BP: 120/80, Temp: 98.6")
+    chief_complaint = models.TextField()
+    diagnosis = models.TextField()
+    treatment_plan = models.TextField()
+    
+    signed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.SET_NULL, 
+        null=True
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Encounter for {self.appointment.patient.last_name} on {self.created_at.date()}"

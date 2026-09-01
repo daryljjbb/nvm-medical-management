@@ -70,6 +70,39 @@ const handleCreate = async (e) => {
     fetchData();
   };
 
+  // Inside Appointments.jsx - Add a new state for the Encounter form
+const [encounterForm, setEncounterForm] = useState({
+    bp_systolic: "",
+    bp_diastolic: "",
+    heart_rate: "",
+    temperature: "",
+    o2_saturation: "",
+    chief_complaint: "",
+    diagnosis: "",
+    treatment_plan: ""
+});
+
+  // The Save Function
+const handleSaveEncounter = async (e) => {
+    e.preventDefault();
+    console.log("[CLINICAL] Saving encounter and vitals...");
+    
+    const res = await apiFetch("/api/encounters/", {
+        method: "POST",
+        body: JSON.stringify({
+            appointment: selectedAppt.id,
+            ...encounterForm
+        })
+    });
+
+    if (res.ok) {
+        setShowEncounterModal(false);
+        fetchData(); // Refresh table to show "Completed" status
+    } else {
+        alert("Error saving medical record.");
+    }
+};
+
   return (
     <div className="container-fluid py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -121,6 +154,22 @@ const handleCreate = async (e) => {
                             <option value="cancelled">Cancelled</option>
                           </select>
                         </td>
+                      {/* Inside your .map() for appointments */}
+                        <td className="text-end">
+                          {appt.status === 'scheduled' ? (
+                           <button 
+                           className="btn btn-sm btn-success me-2" 
+                           onClick={() => {
+                           setSelectedAppt(appt);
+                           setShowEncounterModal(true);
+                            }}
+                           >
+                          <i className="bi bi-file-earmark-medical"></i> Start Visit
+                          </button>
+                           ) : (
+                           <span className="text-muted small">Closed</span>
+                           )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -167,6 +216,36 @@ const handleCreate = async (e) => {
                   <button type="button" className="btn btn-light" onClick={() => setShowModal(false)}>Cancel</button>
                   <button type="submit" className="btn btn-primary">Confirm Booking</button>
                 </div>
+                             // --- Inside the Modal JSX ---
+                <div className="row g-3">
+                 <div className="col-md-6">
+                   <label className="form-label fw-bold small">Blood Pressure (Sys/Dia)</label>
+                   <div className="input-group">
+                   <input type="number" className="form-control" placeholder="120" 
+                    onChange={e => setEncounterForm({...encounterForm, bp_systolic: e.target.value})} />
+                    <span className="input-group-text">/</span>
+                     <input type="number" className="form-control" placeholder="80" 
+                      onChange={e => setEncounterForm({...encounterForm, bp_diastolic: e.target.value})} />
+                  </div>
+                </div>
+                 <div className="col-md-3">
+                   <label className="form-label fw-bold small">Heart Rate</label>
+                   <input type="number" className="form-control" placeholder="BPM" 
+                   onChange={e => setEncounterForm({...encounterForm, heart_rate: e.target.value})} />
+                 </div>
+                 <div className="col-md-3">
+                   <label className="form-label fw-bold small">Temp (°F)</label>
+                   <input type="number" step="0.1" className="form-control" placeholder="98.6" 
+                   onChange={e => setEncounterForm({...encounterForm, temperature: e.target.value})} />
+                 </div>
+    
+                <div className="col-12 mt-4">
+                   <label className="form-label fw-bold small">Chief Complaint</label>
+                   <textarea className="form-control" rows="2" required
+                   onChange={e => setEncounterForm({...encounterForm, chief_complaint: e.target.value})}></textarea>
+                </div>
+                       {/* ... add diagnosis and treatment_plan textareas ... */}
+              </div>
               </form>
             </div>
           </div>

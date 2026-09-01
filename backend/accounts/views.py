@@ -10,7 +10,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 
 # Local Imports
-from .models import Note,Patient,Appointment
+from .models import Note,Patient,Appointment,ClinicalEncounter
 from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer
 from .permissions import IsAdminRole # The custom bouncer we made
 from .permissions import IsStaffOrAdminRole
@@ -325,3 +325,41 @@ def appointment_detail(request, pk):
     if request.method == 'DELETE':
         appointment.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+
+# accounts/views.py
+
+@api_view(['POST'])
+@permission_classes([IsStaffOrAdminRole])
+def create_encounter(request):
+    """
+    Saves a clinical encounter and its associated vitals.
+    """
+    print(f"[CLINICAL] Processing new encounter record...")
+    
+    serializer = ClinicalEncounterSerializer(data=request.data)
+    
+    if serializer.is_valid():
+        appointment_id = request.data.get('appointment')
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+
+        # 1. Prevent duplicate medical records for the same appointment
+        if hasattr(appointment, 'encounter'):
+            return Response({"error": "This visit already has a signed medical record."}, 
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # 2. Save the record and link the logged-in doctor
+        serializer.save(signed_by=request.user, appointment=appointment)
+
+        # 3. Automatically complete the appointment
+        appointment.status = 'completed'
+        appointment.save()
+
+        print(f"[SUCCESS] Encounter signed by {request.user.username} for Appt {appointment_id}")
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+    # 4. If vitals are invalid (e.g. BP was text instead of a number), 
+    # the serializer will catch it here.
+    print(f"[VALIDATION ERROR] Encounter failed: {serializer.errors}")
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

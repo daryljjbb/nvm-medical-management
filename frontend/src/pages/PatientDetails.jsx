@@ -118,6 +118,28 @@ export default function PatientDetails() {
             </div>
           </div>
         </div>
+    {/* Inside PatientDetails.jsx - Add a 'Vitals History' section */}
+<div className="card mt-4 border-0 shadow-sm p-4">
+    <h5 className="fw-bold"><i className="bi bi-activity text-danger me-2"></i>Recent Vitals</h5>
+    <div className="row text-center mt-3">
+        <div className="col-3">
+            <p className="text-muted small mb-0">BP</p>
+            <h4 className="fw-bold">{patient.latest_encounter?.bp_systolic}/{patient.latest_encounter?.bp_diastolic}</h4>
+        </div>
+        <div className="col-3">
+            <p className="text-muted small mb-0">Pulse</p>
+            <h4 className="fw-bold text-primary">{patient.latest_encounter?.heart_rate}</h4>
+        </div>
+        <div className="col-3">
+            <p className="text-muted small mb-0">Temp</p>
+            <h4 className="fw-bold">{patient.latest_encounter?.temperature}°</h4>
+        </div>
+        <div className="col-3">
+            <p className="text-muted small mb-0">O2 Sat</p>
+            <h4 className="fw-bold">{patient.latest_encounter?.o2_saturation}%</h4>
+        </div>
+    </div>
+</div>
       </div>
     </div>
   );
