@@ -41,7 +41,6 @@ class UserCreationSerializer(serializers.ModelSerializer):
 
 class PatientSerializer(serializers.ModelSerializer):
     latest_encounter = serializers.SerializerMethodField()
-    # NEW: Full list of all past visits
     visit_history = serializers.SerializerMethodField()
 
     class Meta:
@@ -54,33 +53,44 @@ class PatientSerializer(serializers.ModelSerializer):
         ]
 
     def get_latest_encounter(self, obj):
+        """Returns the full data of the most recent encounter."""
         latest_appt = obj.appointments.filter(encounter__isnull=False).order_by('-date_time').first()
         if latest_appt and hasattr(latest_appt, 'encounter'):
             e = latest_appt.encounter
+            # ROOT CAUSE FIX: Send individual fields so frontend logic works
             return {
-                "bp": f"{e.bp_systolic}/{e.bp_diastolic}",
+                "bp_systolic": e.bp_systolic,
+                "bp_diastolic": e.bp_diastolic,
                 "heart_rate": e.heart_rate,
-                "temp": float(e.temperature) if e.temperature else None,
-                "o2": e.o2_saturation,
+                "temperature": float(e.temperature) if e.temperature else None,
+                "o2_saturation": e.o2_saturation,
                 "date": latest_appt.date_time.strftime("%b %d, %Y")
             }
         return None
 
     def get_visit_history(self, obj):
-        """Returns all encounters for this patient in a simple list."""
-        # Logic: Find all appointments with encounters
+        """Returns all encounters for the history table, including clinical notes."""
         appts = obj.appointments.filter(encounter__isnull=False).order_by('-date_time')
         history = []
         for a in appts:
+            e = a.encounter
             history.append({
-                "encounter_id": a.encounter.id,
+                "encounter_id": e.id,
                 "date": a.date_time.strftime("%m/%d/%Y"),
                 "reason": a.reason,
-                "diagnosis": a.encounter.diagnosis,
-                "provider": a.staff.username
+                "diagnosis": e.diagnosis,
+                "treatment_plan": e.treatment_plan,
+                "chief_complaint": e.chief_complaint,
+                "provider": a.staff.username,
+                # Include vitals here too so the "View Full Record" modal can show them
+                "vitals": {
+                    "bp": f"{e.bp_systolic}/{e.bp_diastolic}",
+                    "hr": e.heart_rate,
+                    "temp": float(e.temperature) if e.temperature else "N/A",
+                    "o2": e.o2_saturation
+                }
             })
         return history
-
 # ==========================================
 # APPOINTMENT SERIALIZER (FIXED)
 # ==========================================
