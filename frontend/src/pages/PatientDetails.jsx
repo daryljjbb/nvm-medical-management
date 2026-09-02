@@ -172,7 +172,57 @@ export default function PatientDetails() {
       <small>Vitals will appear here after the first completed visit.</small>
     </div>
   )}
-</div>  
+</div>
+  {/* --- VISIT HISTORY TABLE --- */}
+<div className="card mt-4 border-0 shadow-sm">
+  <div className="card-header bg-white py-3 border-bottom">
+    <h5 className="fw-bold mb-0">
+      <i className="bi bi-clock-history text-primary me-2"></i> Clinical Visit History
+    </h5>
+  </div>
+  <div className="card-body p-0">
+    <div className="table-responsive">
+      <table className="table table-hover align-middle mb-0">
+        <thead className="table-light small text-uppercase">
+          <tr>
+            <th className="ps-4">Date</th>
+            <th>Reason for Visit</th>
+            <th>Clinical Diagnosis</th>
+            <th>Provider</th>
+            <th className="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {patient.visit_history && patient.visit_history.length > 0 ? (
+            patient.visit_history.map((visit) => (
+              <tr key={visit.encounter_id}>
+                <td className="ps-4 fw-bold text-primary">{visit.date}</td>
+                <td>{visit.reason}</td>
+                <td>
+                  <span className="text-truncate d-inline-block" style={{maxWidth: '250px'}}>
+                    {visit.diagnosis}
+                  </span>
+                </td>
+                <td><i className="bi bi-person-badge me-1"></i> {visit.provider}</td>
+                <td className="text-end pe-4">
+                  <button className="btn btn-sm btn-link text-decoration-none">
+                    View Full Record
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" className="text-center py-5 text-muted">
+                No previous clinical encounters found for this patient.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
   </div>
     </div>
   );

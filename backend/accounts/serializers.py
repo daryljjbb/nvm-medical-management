@@ -40,8 +40,9 @@ class UserCreationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"detail": "Could not create user account."})
 
 class PatientSerializer(serializers.ModelSerializer):
-    # This creates the 'latest_encounter' field the frontend is looking for
     latest_encounter = serializers.SerializerMethodField()
+    # NEW: Full list of all past visits
+    visit_history = serializers.SerializerMethodField()
 
     class Meta:
         model = Patient
@@ -49,35 +50,36 @@ class PatientSerializer(serializers.ModelSerializer):
             'id', 'first_name', 'last_name', 'date_of_birth', 
             'gender', 'blood_group', 'address', 'city', 
             'emergency_contact_name', 'emergency_contact_phone',
-            'latest_encounter' # Add it here
+            'latest_encounter', 'visit_history'
         ]
 
     def get_latest_encounter(self, obj):
-        """
-        Logic: Find the most recent appointment for this patient 
-        that actually has a clinical record signed.
-        """
-        # 1. Get appointments for this patient, ordered by newest date
-        # 2. Filter for those that HAVE an encounter record
-        # 3. Take the first (newest) one
         latest_appt = obj.appointments.filter(encounter__isnull=False).order_by('-date_time').first()
-
         if latest_appt and hasattr(latest_appt, 'encounter'):
-            encounter = latest_appt.encounter
-            # Return only the vitals so the frontend stays light
+            e = latest_appt.encounter
             return {
-                "id": encounter.id,
-                "bp_systolic": encounter.bp_systolic,
-                "bp_diastolic": encounter.bp_diastolic,
-                "heart_rate": encounter.heart_rate,
-                "temperature": float(encounter.temperature) if encounter.temperature else None,
-                "o2_saturation": encounter.o2_saturation,
-                "diagnosis": encounter.diagnosis,
-                "treatment_plan": encounter.treatment_plan,
+                "bp": f"{e.bp_systolic}/{e.bp_diastolic}",
+                "heart_rate": e.heart_rate,
+                "temp": float(e.temperature) if e.temperature else None,
+                "o2": e.o2_saturation,
                 "date": latest_appt.date_time.strftime("%b %d, %Y")
             }
-        return None # No encounters found yet
+        return None
 
+    def get_visit_history(self, obj):
+        """Returns all encounters for this patient in a simple list."""
+        # Logic: Find all appointments with encounters
+        appts = obj.appointments.filter(encounter__isnull=False).order_by('-date_time')
+        history = []
+        for a in appts:
+            history.append({
+                "encounter_id": a.encounter.id,
+                "date": a.date_time.strftime("%m/%d/%Y"),
+                "reason": a.reason,
+                "diagnosis": a.encounter.diagnosis,
+                "provider": a.staff.username
+            })
+        return history
 
 # ==========================================
 # APPOINTMENT SERIALIZER (FIXED)
