@@ -393,38 +393,43 @@ def encounter_detail(request, pk):
 @permission_classes([IsStaffOrAdminRole])
 def check_medication_safety(request):
     """
-    AI Safety Check: Reviews drug against history.
-    If the library is missing or API key is gone, it uses Simulation Mode.
+    AI Safety Check: Reviews new drug against history.
+    Simulates a medical database check for the demo.
     """
     patient_id = request.data.get('patient_id')
-    new_med = request.data.get('medication_name')
+    new_med = request.data.get('medication_name', '').strip().capitalize()
     
-    # 1. Fetch Data
+    # 1. Fetch Patient and their Current Meds
     patient = get_object_or_404(Patient, id=patient_id)
     current_meds = Prescription.objects.filter(patient=patient, is_active=True)
-    med_list = [m.medication_name for m in current_meds]
+    med_list = [m.medication_name.capitalize() for m in current_meds]
 
-    # 2. Logic: Should we use real AI or Simulation?
-    api_key = os.getenv("OPENAI_API_KEY")
+    print(f"[AI CHECK] Cross-referencing {new_med} for {patient.last_name}")
 
-    if OPENAI_AVAILABLE and api_key:
-        print(f"[AI] Using Live OpenAI engine for {new_med}")
-        try:
-            # Live AI logic goes here...
-            pass 
-        except Exception as e:
-            print(f"[AI ERROR] Live call failed: {str(e)}")
+    # 2. SMART SIMULATION LOGIC
+    # We "hardcode" a few common interactions for a perfect demo
+    interactions = []
+    side_effects = ["Nausea", "Dizziness", "Gastric irritation"]
+
+    # Specific check for Buddy's Lisinopril
+    if "Lisinopril" in med_list and "Aspirin" in new_med:
+        interactions.append("CRITICAL: NSAIDs (Aspirin) may reduce the antihypertensive effect of ACE inhibitors (Lisinopril) and increase risk of renal impairment.")
     
-    # 3. Fallback / Simulation (Ensures the demo always works)
-    print(f"[AI] Using Simulation engine for {new_med}")
-    simulated_response = {
-        "medication": new_med,
-        "interactions": [f"Review: {new_med} vs {med_list[0]}"] if med_list else ["Clear: No conflicts."],
-        "side_effects": ["General: Nausea", "Drowsiness"],
-        "disclaimer": "Simulated AI analysis for demonstration."
-    }
-    return Response(simulated_response)
+    # General check if we don't have a specific rule
+    elif len(med_list) > 0:
+        interactions.append(f"Caution: Clinical review recommended when adding {new_med} to existing regimen: {', '.join(med_list)}.")
+    else:
+        interactions.append("No common drug-drug interactions found with current empty profile.")
 
+    # 3. Response Package
+    analysis = {
+        "medication": new_med,
+        "interactions": interactions,
+        "side_effects": side_effects,
+        "disclaimer": "AI-Simulated Analysis. This is for demonstration purposes and must be verified by a physician."
+    }
+    
+    return Response(analysis, status=status.HTTP_200_OK)
 
 
 @api_view(['GET', 'POST'])

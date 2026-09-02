@@ -294,27 +294,34 @@ export default function PatientDetails() {
                     </div>
                   </div>
 
+                  {/* AI RESULTS DISPLAY */}
                   {aiResults && (
-                    <div className="alert alert-warning border-0 shadow-sm mt-4">
-                      <h6 className="fw-bold text-dark"><i className="bi bi-shield-exclamation me-2"></i>AI Clinical Insights</h6>
+                    <div className="alert alert-warning border-0 shadow-sm mt-4 animate-fade-in">
+                      <h6 className="fw-bold text-dark">
+                      <i className="bi bi-shield-exclamation-fill me-2 text-danger"></i>
+                      AI Clinical Safety Analysis
+                     </h6>
                       <hr />
-                      <p className="small mb-1"><strong>Interactions:</strong> {aiResults.interactions?.join(", ")}</p>
-                      <p className="small mb-0"><strong>Potential Side Effects:</strong> {aiResults.side_effects?.join(", ")}</p>
-                      <div className="mt-2 p-2 bg-white rounded border" style={{fontSize: '0.65rem'}}>
-                        <i className="bi bi-info-circle me-1"></i> {aiResults.disclaimer}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="modal-footer border-top">
-                  <button type="button" className="btn btn-secondary" onClick={() => setShowPrescriptionModal(false)}>Cancel</button>
-                  <button type="submit" className="btn btn-primary px-4">Authorize Prescription</button>
-                </div>
-              </form>
-            </div>
-          </div>
+    
+                      <div className="mb-3">
+                       <strong className="small text-uppercase">Potential Interactions:</strong>
+                       <ul className="mb-0 mt-1">
+                         {aiResults.interactions.map((msg, i) => (
+                       <li key={i} className="text-danger small fw-bold">{msg}</li>
+                       ))}
+                      </ul>
+                     </div>
+
+                   <div>
+                    <strong className="small text-uppercase">Expected Side Effects:</strong>
+                     <p className="small mb-0">{aiResults.side_effects.join(", ")}</p>
+                   </div>
+
+                  <div className="mt-3 p-2 bg-white rounded border border-warning" style={{fontSize: '0.65rem'}}>
+                     <i className="bi bi-info-circle me-1"></i> {aiResults.disclaimer}
+                  </div>
+              </div>
+          )}    
         </div>
-      )}
-    </div>
-  );
-}
+        );
+        }
