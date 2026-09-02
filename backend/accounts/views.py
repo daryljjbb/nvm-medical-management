@@ -389,49 +389,42 @@ def encounter_detail(request, pk):
 @permission_classes([IsStaffOrAdminRole])
 def check_medication_safety(request):
     """
-    AI Safety Check: Reviews new drug against current patient history.
+    AI Safety Check: Reviews a new drug against the patient's existing meds.
     """
     patient_id = request.data.get('patient_id')
     new_med = request.data.get('medication_name')
     
-    # 1. Fetch Patient and Current Meds
-    patient = get_object_or_404(Patient, id=patient_id)
-    current_meds = Prescription.objects.filter(patient=patient, is_active=True)
-    med_list = [m.medication_name for m in current_meds]
+    if not patient_id or not new_med:
+        return Response({"error": "Patient ID and Medication Name are required."}, status=400)
 
-    print(f"[AI CHECK] Reviewing {new_med} for {patient.last_name}")
+    print(f"[AI CLINICAL] Safety check initiated for Med: {new_med}")
 
-    # 2. Build the "Doctor-AI" Prompt
-    prompt = f"""
-    You are a Clinical Pharmacist Assistant. 
-    Patient: {patient.first_name} {patient.last_name}, Age: {patient.date_of_birth}.
-    Current Medications: {", ".join(med_list) if med_list else "None"}.
-    New Prescription: {new_med}.
-
-    Task: Identify potential side effects of {new_med} and any drug-drug interactions with the current meds.
-    Format: Return a clean JSON object with 'interactions' (list) and 'warnings' (list).
-    """
-
-    # 3. Call AI (Using a Try/Except block to prevent server crash)
     try:
-        # If you have an OPENAI_API_KEY in your .env
-        # response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "system", "content": prompt}])
-        # return Response(response.choices[0].message.content)
+        # 1. Fetch the patient record
+        patient = get_object_or_404(Patient, id=patient_id)
         
-        # FOR DEMO PURPOSES: We return a structured 'Simulated AI' response
-        # In a real medical app, you would use a medical API.
-        simulated_response = {
-            "analysis": f"AI Analysis for {new_med}:",
-            "interactions": [f"Potential interaction between {new_med} and existing meds found."] if med_list else ["No known interactions with current list."],
-            "side_effects": ["Dizziness", "Dry mouth", "Increased heart rate"],
-            "disclaimer": "AI-generated insight. Verify with a licensed pharmacist before finalizing prescription."
-        }
-        return Response(simulated_response)
-        
-    except Exception as e:
-        print(f"[AI ERROR] {str(e)}")
-        return Response({"error": "AI Service currently unavailable."}, status=500)
+        # 2. Get their current active medications to cross-reference
+        current_meds = Prescription.objects.filter(patient=patient, is_active=True)
+        med_list = [m.medication_name for m in current_meds]
 
+        # 3. Simulate AI logic (or call OpenAI here)
+        # We use a simulated response for the demo to keep it fast and free
+        has_interactions = len(med_list) > 0
+        
+        analysis = {
+            "medication": new_med,
+            "interactions": [f"Alert: {new_med} may react with {med_list[0]}"] if has_interactions else ["No current medications found to conflict with."],
+            "side_effects": ["Nausea", "Drowsiness", "Dry mouth"],
+            "disclaimer": "This is an AI-assisted safety check. Final clinical judgment is required by the presiding doctor."
+        }
+        
+        return Response(analysis, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print(f"[AI CRASH] {str(e)}")
+        return Response({"error": "AI Clinical engine timed out."}, status=500
+
+                        )
 @api_view(['GET', 'POST'])
 @permission_classes([IsStaffOrAdminRole])
 def manage_prescriptions(request):

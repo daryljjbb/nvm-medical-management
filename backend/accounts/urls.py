@@ -31,18 +31,20 @@ urlpatterns = [
     path('patients/<uuid:patient_id>/', views.patient_detail, name='patient-detail'),
 
     # ==========================================
-    # 5. CLINICAL SCHEDULING
+    # 5. CLINICAL SCHEDULING & VISITS
     # ==========================================
     path('appointments/', views.manage_appointments, name='appointments'),
     path('appointments/<uuid:pk>/', views.appointment_detail, name='appointment-detail'),
+    path('encounters/', views.create_encounter, name='create-encounter'),
+    path('encounters/<uuid:pk>/', views.encounter_detail, name='encounter-detail'),
 
     # ==========================================
-    # 6. CLINICAL ENCOUNTERS (THE FIX)
+    # 6. PHARMACY & AI SAFETY (THE NEW ADDITIONS)
     # ==========================================
-    # This endpoint is where the 'Start Visit' form sends its data
-    path('encounters/', views.create_encounter, name='create-encounter'),
     
-    # This endpoint allows the 'View Record' button to work
-    # We will need a view for this called 'encounter_detail' (added below)
-    path('encounters/<uuid:pk>/', views.encounter_detail, name='encounter-detail'),
+    # This endpoint handles LISTING and SAVING medications
+    path('prescriptions/', views.manage_prescriptions, name='prescriptions'),
+    
+    # This endpoint triggers the AI logic to check for drug interactions
+    path('med-check/', views.check_medication_safety, name='med-check'),
 ]
