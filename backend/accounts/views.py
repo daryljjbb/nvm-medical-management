@@ -9,12 +9,14 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
-import openai # pip install openai
+
 from django.conf import settings
+import openai
+
 
 # Local Imports
 from .models import Note,Patient,Appointment,ClinicalEncounter,Prescription
-from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer,ClinicalEncounterSerializer
+from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer,ClinicalEncounterSerializer,PrescriptionSerializer
 from .permissions import IsAdminRole # The custom bouncer we made
 from .permissions import IsStaffOrAdminRole
 
@@ -429,3 +431,29 @@ def check_medication_safety(request):
     except Exception as e:
         print(f"[AI ERROR] {str(e)}")
         return Response({"error": "AI Service currently unavailable."}, status=500)
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsStaffOrAdminRole])
+def manage_prescriptions(request):
+    """
+    GET: List prescriptions (filtered by patient_id in query params).
+    POST: Create a new prescription with AI safety check potential.
+    """
+    if request.method == 'GET':
+        patient_id = request.query_params.get('patient_id')
+        prescriptions = Prescription.objects.filter(patient_id=patient_id)
+        serializer = PrescriptionSerializer(prescriptions, many=True)
+        return Response(serializer.data)
+
+    if request.method == 'POST':
+        print(f"[MEDICAL] Prescription requested by {request.user.username}")
+        
+        serializer = PrescriptionSerializer(data=request.data)
+        if serializer.is_valid():
+            # ROOT CAUSE FIX: Automatically attach the logged-in doctor
+            serializer.save(prescribed_by=request.user)
+            print(f"[SUCCESS] Medication {request.data.get('medication_name')} saved.")
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        print(f"[ERROR] Prescription invalid: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Note, Patient, Appointment,ClinicalEncounter
+from .models import Note, Patient, Appointment,ClinicalEncounter,Prescription
 import logging
 
 # Set up logging to track serialization errors in Render
@@ -43,13 +43,20 @@ class PatientSerializer(serializers.ModelSerializer):
     latest_encounter = serializers.SerializerMethodField()
     visit_history = serializers.SerializerMethodField()
 
+    # NEW: Include active medications in the chart automatically
+    active_prescriptions = PrescriptionSerializer(
+        source='prescriptions', 
+        many=True, 
+        read_only=True
+    )
+
     class Meta:
         model = Patient
         fields = [
             'id', 'first_name', 'last_name', 'date_of_birth', 
             'gender', 'blood_group', 'address', 'city', 
             'emergency_contact_name', 'emergency_contact_phone',
-            'latest_encounter', 'visit_history'
+            'latest_encounter', 'visit_history', 'active_prescriptions'
         ]
 
     def get_latest_encounter(self, obj):
@@ -163,4 +170,27 @@ class ClinicalEncounterSerializer(serializers.ModelSerializer):
         ]
         # signed_by is set automatically in the view, like we did for staff
         read_only_fields = ['id', 'signed_by']
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    # Show the doctor's name instead of just a UUID
+    doctor_name = serializers.ReadOnlyField(source='prescribed_by.username')
+    
+    # Format the date for the medical chart
+    date_prescribed = serializers.DateTimeField(
+        source='created_at', 
+        format="%m/%d/%Y", 
+        read_only=True
+    )
+
+    class Meta:
+        model = Prescription
+        fields = [
+            'id', 'patient', 'medication_name', 'dosage', 
+            'frequency', 'is_active', 'prescribed_by', 
+            'doctor_name', 'date_prescribed'
+        ]
+        # ROOT CAUSE FIX: 'prescribed_by' is read_only so the frontend 
+        # cannot "fake" which doctor signed the prescription.
+        read_only_fields = ['id', 'prescribed_by']
+
 

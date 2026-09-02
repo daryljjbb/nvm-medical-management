@@ -67,6 +67,35 @@ const runAiSafetyCheck = async () => {
     }
 };
 
+const handleConfirmPrescription = async (e) => {
+    e.preventDefault();
+    console.log("[PRESCRIPTION] Submitting to backend...");
+
+    try {
+        const res = await apiFetch("/api/prescriptions/", {
+            method: "POST",
+            body: JSON.stringify({
+                patient: id, // The UUID from useParams
+                medication_name: newMedName,
+                dosage: dosage,       // from a state variable
+                frequency: frequency  // from a state variable
+            })
+        });
+
+        if (res.ok) {
+            console.log("[SUCCESS] Prescription added to chart.");
+            setShowPrescriptionModal(false);
+            // Refresh the entire chart data to show the new med in the list
+            fetchChart(); 
+        } else {
+            const errData = await res.json();
+            alert("Prescription Error: " + JSON.stringify(errData));
+        }
+    } catch (err) {
+        console.error("[CRITICAL] Failed to connect to prescription API", err);
+    }
+};
+
 
   if (!patient) return <div className="alert alert-danger">Patient not found.</div>;
 
