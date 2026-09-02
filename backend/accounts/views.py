@@ -11,7 +11,7 @@ from rest_framework.authtoken.models import Token
 
 # Local Imports
 from .models import Note,Patient,Appointment,ClinicalEncounter
-from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer
+from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer,ClinicalEncounterSerializer
 from .permissions import IsAdminRole # The custom bouncer we made
 from .permissions import IsStaffOrAdminRole
 
