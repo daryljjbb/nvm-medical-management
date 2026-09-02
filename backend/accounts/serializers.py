@@ -40,12 +40,44 @@ class UserCreationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({"detail": "Could not create user account."})
 
 class PatientSerializer(serializers.ModelSerializer):
-    """
-    Handles clinical patient data.
-    """
+    # This creates the 'latest_encounter' field the frontend is looking for
+    latest_encounter = serializers.SerializerMethodField()
+
     class Meta:
         model = Patient
-        fields = '__all__'
+        fields = [
+            'id', 'first_name', 'last_name', 'date_of_birth', 
+            'gender', 'blood_group', 'address', 'city', 
+            'emergency_contact_name', 'emergency_contact_phone',
+            'latest_encounter' # Add it here
+        ]
+
+    def get_latest_encounter(self, obj):
+        """
+        Logic: Find the most recent appointment for this patient 
+        that actually has a clinical record signed.
+        """
+        # 1. Get appointments for this patient, ordered by newest date
+        # 2. Filter for those that HAVE an encounter record
+        # 3. Take the first (newest) one
+        latest_appt = obj.appointments.filter(encounter__isnull=False).order_by('-date_time').first()
+
+        if latest_appt and hasattr(latest_appt, 'encounter'):
+            encounter = latest_appt.encounter
+            # Return only the vitals so the frontend stays light
+            return {
+                "id": encounter.id,
+                "bp_systolic": encounter.bp_systolic,
+                "bp_diastolic": encounter.bp_diastolic,
+                "heart_rate": encounter.heart_rate,
+                "temperature": float(encounter.temperature) if encounter.temperature else None,
+                "o2_saturation": encounter.o2_saturation,
+                "diagnosis": encounter.diagnosis,
+                "treatment_plan": encounter.treatment_plan,
+                "date": latest_appt.date_time.strftime("%b %d, %Y")
+            }
+        return None # No encounters found yet
+
 
 # ==========================================
 # APPOINTMENT SERIALIZER (FIXED)

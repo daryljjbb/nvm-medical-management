@@ -119,28 +119,61 @@ export default function PatientDetails() {
           </div>
         </div>
     {/* Inside PatientDetails.jsx - Add a 'Vitals History' section */}
+{/* Replace your Recent Vitals section with this improved version */}
 <div className="card mt-4 border-0 shadow-sm p-4">
-    <h5 className="fw-bold"><i className="bi bi-activity text-danger me-2"></i>Recent Vitals</h5>
-    <div className="row text-center mt-3">
-        <div className="col-3">
-            <p className="text-muted small mb-0">BP</p>
-            <h4 className="fw-bold">{patient.latest_encounter?.bp_systolic}/{patient.latest_encounter?.bp_diastolic}</h4>
+  <div className="d-flex justify-content-between align-items-center mb-3">
+    <h5 className="fw-bold mb-0">
+      <i className="bi bi-activity text-danger me-2"></i>Recent Vitals
+    </h5>
+    {patient.latest_encounter && (
+      <span className="badge bg-light text-muted border">
+        Last Recorded: {patient.latest_encounter.date}
+      </span>
+    )}
+  </div>
+
+  {patient.latest_encounter ? (
+    <div className="row text-center g-3">
+      <div className="col-6 col-md-3">
+        <div className="p-3 bg-light rounded">
+          <p className="text-muted small mb-1 uppercase fw-bold">Blood Pressure</p>
+          <h4 className="fw-bold mb-0">
+            {patient.latest_encounter.bp_systolic}/{patient.latest_encounter.bp_diastolic}
+          </h4>
+          <small className="text-muted">mmHg</small>
         </div>
-        <div className="col-3">
-            <p className="text-muted small mb-0">Pulse</p>
-            <h4 className="fw-bold text-primary">{patient.latest_encounter?.heart_rate}</h4>
-        </div>
-        <div className="col-3">
-            <p className="text-muted small mb-0">Temp</p>
-            <h4 className="fw-bold">{patient.latest_encounter?.temperature}°</h4>
-        </div>
-        <div className="col-3">
-            <p className="text-muted small mb-0">O2 Sat</p>
-            <h4 className="fw-bold">{patient.latest_encounter?.o2_saturation}%</h4>
-        </div>
-    </div>
-</div>
       </div>
+      <div className="col-6 col-md-3">
+        <div className="p-3 bg-light rounded">
+          <p className="text-muted small mb-1 uppercase fw-bold">Pulse</p>
+          <h4 className="fw-bold text-primary mb-0">{patient.latest_encounter.heart_rate}</h4>
+          <small className="text-muted">BPM</small>
+        </div>
+      </div>
+      <div className="col-6 col-md-3">
+        <div className="p-3 bg-light rounded">
+          <p className="text-muted small mb-1 uppercase fw-bold">Temperature</p>
+          <h4 className="fw-bold mb-0">{patient.latest_encounter.temperature}°</h4>
+          <small className="text-muted">Fahrenheit</small>
+        </div>
+      </div>
+      <div className="col-6 col-md-3">
+        <div className="p-3 bg-light rounded">
+          <p className="text-muted small mb-1 uppercase fw-bold">O2 Saturation</p>
+          <h4 className="fw-bold mb-0">{patient.latest_encounter.o2_saturation}%</h4>
+          <small className="text-muted">SpO2</small>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="text-center py-4 bg-light rounded border border-dashed">
+      <i className="bi bi-clipboard-x text-muted fs-2"></i>
+      <p className="text-muted mt-2 mb-0">No clinical vitals recorded for this patient yet.</p>
+      <small>Vitals will appear here after the first completed visit.</small>
+    </div>
+  )}
+</div>  
+  </div>
     </div>
   );
 }
