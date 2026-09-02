@@ -215,17 +215,4 @@ export default function PatientDetails() {
       )}
     </div>
   );
-}r py-5 text-muted">
-                No previous clinical encounters found for this patient.
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-  </div>
-    </div>
-  );
 }
