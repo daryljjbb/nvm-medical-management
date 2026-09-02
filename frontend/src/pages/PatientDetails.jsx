@@ -38,6 +38,36 @@ export default function PatientDetails() {
     </div>
   );
 
+  // --- Inside PatientDetails.jsx ---
+const [prescriptions, setPrescriptions] = useState([]);
+const [aiResults, setAiResults] = useState(null);
+const [checkingAi, setCheckingAi] = useState(false);
+const [newMedName, setNewMedName] = useState("");
+
+// Function to call the AI
+const runAiSafetyCheck = async () => {
+    setCheckingAi(true);
+    console.log("[AI] Starting safety cross-reference...");
+    
+    try {
+        const res = await apiFetch("/api/med-check/", {
+            method: "POST",
+            body: JSON.stringify({
+                patient_id: id,
+                medication_name: newMedName
+            })
+        });
+        if (res.ok) {
+            setAiResults(await res.json());
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        setCheckingAi(false);
+    }
+};
+
+
   if (!patient) return <div className="alert alert-danger">Patient not found.</div>;
 
   return (
@@ -173,6 +203,73 @@ export default function PatientDetails() {
             </table>
           </div>
         </div>
+    // --- In the JSX, add this below Visit History ---
+<div className="card mt-4 border-0 shadow-sm overflow-hidden">
+    <div className="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+        <h5 className="mb-0"><i className="bi bi-capsule me-2"></i>Active Prescriptions</h5>
+        <button className="btn btn-sm btn-outline-light" onClick={() => setShowPrescriptionModal(true)}>
+            + Add Medication
+        </button>
+    </div>
+    <div className="card-body">
+        <div className="table-responsive">
+            <table className="table">
+                <thead>
+                    <tr><th>Medication</th><th>Dosage</th><th>Frequency</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    {/* Map through patient.prescriptions */}
+                    <tr>
+                        <td><strong>Lisinopril</strong></td>
+                        <td>10mg</td>
+                        <td>Once Daily</td>
+                        <td><span className="badge bg-success">Active</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{/* AI SAFETY CHECK MODAL */}
+{showPrescriptionModal && (
+    <div className="modal fade show d-block" style={{background: 'rgba(0,0,0,0.8)'}}>
+        <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+                <div className="modal-header border-0">
+                    <h5 className="fw-bold">Prescribe New Medication</h5>
+                    <button className="btn-close" onClick={() => setShowPrescriptionModal(false)}></button>
+                </div>
+                <div className="modal-body p-4">
+                    <label className="form-label fw-bold">Medication Name</label>
+                    <div className="input-group mb-3">
+                        <input type="text" className="form-control" placeholder="Search drug name..." 
+                               onChange={(e) => setNewMedName(e.target.value)} />
+                        <button className="btn btn-info text-white" onClick={runAiSafetyCheck} disabled={!newMedName || checkingAi}>
+                           {checkingAi ? <span className="spinner-border spinner-border-sm"></span> : <><i className="bi bi-robot me-1"></i> AI Safety Check</>}
+                        </button>
+                    </div>
+
+                    {aiResults && (
+                        <div className="alert alert-warning border-0 shadow-sm mt-4">
+                            <h6 className="fw-bold text-dark"><i className="bi bi-shield-exclamation me-2"></i>AI Clinical Insights</h6>
+                            <hr />
+                            <p className="small"><strong>Interactions:</strong> {aiResults.interactions.join(", ")}</p>
+                            <p className="small"><strong>Potential Side Effects:</strong> {aiResults.side_effects.join(", ")}</p>
+                            <div className="mt-2 p-2 bg-white rounded border" style={{fontSize: '0.7rem'}}>
+                                <i className="bi bi-info-circle me-1"></i> {aiResults.disclaimer}
+                            </div>
+                        </div>
+                    )}
+                </div>
+                <div className="modal-footer border-0">
+                    <button className="btn btn-secondary" onClick={() => setShowPrescriptionModal(false)}>Cancel</button>
+                    <button className="btn btn-primary px-4">Confirm Prescription</button>
+                </div>
+            </div>
+        </div>
+    </div>
+)}
       </div>
 
       {/* --- MODAL: HISTORICAL ENCOUNTER DETAIL --- */}

@@ -190,3 +190,22 @@ class ClinicalEncounter(models.Model):
     def __str__(self):
          # Good: Uses a simple string
         return f"Encounter {self.id}"
+
+
+class Prescription(models.Model):
+    # UUID for security
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name="prescriptions")
+    
+    # Medication Details
+    medication_name = models.CharField(max_length=200) # e.g. Lisinopril
+    dosage = models.CharField(max_length=100)           # e.g. 10mg
+    frequency = models.CharField(max_length=100)        # e.g. Once daily
+    
+    # Status
+    is_active = models.BooleanField(default=True) # To track current vs past meds
+    prescribed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.medication_name} for {self.patient.last_name}"

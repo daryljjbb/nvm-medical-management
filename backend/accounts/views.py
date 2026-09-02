@@ -9,8 +9,11 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 
+import openai # pip install openai
+from django.conf import settings
+
 # Local Imports
-from .models import Note,Patient,Appointment,ClinicalEncounter
+from .models import Note,Patient,Appointment,ClinicalEncounter,Prescription
 from .serializers import UserSerializer, UserCreationSerializer, NoteSerializer,PatientSerializer,AppointmentSerializer,ClinicalEncounterSerializer
 from .permissions import IsAdminRole # The custom bouncer we made
 from .permissions import IsStaffOrAdminRole
@@ -378,3 +381,51 @@ def encounter_detail(request, pk):
     encounter = get_object_or_404(ClinicalEncounter, id=pk)
     serializer = ClinicalEncounterSerializer(encounter)
     return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsStaffOrAdminRole])
+def check_medication_safety(request):
+    """
+    AI Safety Check: Reviews new drug against current patient history.
+    """
+    patient_id = request.data.get('patient_id')
+    new_med = request.data.get('medication_name')
+    
+    # 1. Fetch Patient and Current Meds
+    patient = get_object_or_404(Patient, id=patient_id)
+    current_meds = Prescription.objects.filter(patient=patient, is_active=True)
+    med_list = [m.medication_name for m in current_meds]
+
+    print(f"[AI CHECK] Reviewing {new_med} for {patient.last_name}")
+
+    # 2. Build the "Doctor-AI" Prompt
+    prompt = f"""
+    You are a Clinical Pharmacist Assistant. 
+    Patient: {patient.first_name} {patient.last_name}, Age: {patient.date_of_birth}.
+    Current Medications: {", ".join(med_list) if med_list else "None"}.
+    New Prescription: {new_med}.
+
+    Task: Identify potential side effects of {new_med} and any drug-drug interactions with the current meds.
+    Format: Return a clean JSON object with 'interactions' (list) and 'warnings' (list).
+    """
+
+    # 3. Call AI (Using a Try/Except block to prevent server crash)
+    try:
+        # If you have an OPENAI_API_KEY in your .env
+        # response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "system", "content": prompt}])
+        # return Response(response.choices[0].message.content)
+        
+        # FOR DEMO PURPOSES: We return a structured 'Simulated AI' response
+        # In a real medical app, you would use a medical API.
+        simulated_response = {
+            "analysis": f"AI Analysis for {new_med}:",
+            "interactions": [f"Potential interaction between {new_med} and existing meds found."] if med_list else ["No known interactions with current list."],
+            "side_effects": ["Dizziness", "Dry mouth", "Increased heart rate"],
+            "disclaimer": "AI-generated insight. Verify with a licensed pharmacist before finalizing prescription."
+        }
+        return Response(simulated_response)
+        
+    except Exception as e:
+        print(f"[AI ERROR] {str(e)}")
+        return Response({"error": "AI Service currently unavailable."}, status=500)
